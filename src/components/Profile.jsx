@@ -164,6 +164,17 @@ export default function ProfilePage() {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+  // Fonction pour gérer le clic sur le bouton d'expertise
+  const handleExpertiseButton = () => {
+    if (user.role === 'EXPERT') {
+      // Rediriger vers la page des demandes d'expertise
+      navigate('/expertise-requests');
+    } else {
+      // Ouvrir le modal pour devenir expert
+      setShowModal(true);
+    }
+  };
+
   if (!user) {
     return <div>Loading...</div>;
   }
@@ -195,8 +206,11 @@ export default function ProfilePage() {
                 />
                 <p className="text-muted mb-3 mt-3">{user.username}</p>
                 <div className="d-flex justify-content-center mb-2">
-                  <Button variant="primary" onClick={() => setShowModal(true)}>
-                    Become an Expert
+                  <Button 
+                    variant={user.role === 'EXPERT' ? 'success' : 'primary'} 
+                    onClick={handleExpertiseButton}
+                  >
+                    {user.role === 'EXPERT' ? "Demandes D'expertise" : "Become an Expert"}
                   </Button>
                 </div>
               </Card.Body>
