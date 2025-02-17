@@ -147,106 +147,180 @@ const ShopArea = () => {
   return (
     <section className="space-top space-extra-bottom">
       <div className="container">
-        <div className="row flex-row-reverse align-items-start">
-          <div className="col-xl-3 col-lg-4 sidebar-widget-area order-lg-2">
-            <aside className="sidebar-sticky-area sidebar-area sidebar-shop">
-              <div className="widget widget_search">
-                <h3 className="widget_title">Search</h3>
+        <div className="row align-items-start">
+          <div className="col-xl-3 col-lg-4">
+            <aside className="sidebar-filter">
+              {/* Search */}
+              <div className="filter-section">
+                <h3 className="filter-title">
+                  <i className="fas fa-search"></i> Recherche
+                </h3>
                 <form className="search-form" onSubmit={handleSearch}>
-                  <input type="text" name="search" placeholder="Find your product" />
-                  <button type="submit">
-                    <i className="fas fa-search" />
-                  </button>
+                  <div className="search-input-wrapper">
+                    <input 
+                      type="text" 
+                      name="search" 
+                      placeholder="Rechercher une voiture..." 
+                    />
+                    <button type="submit" className="search-btn">
+                      <i className="fas fa-search" />
+                    </button>
+                  </div>
                 </form>
               </div>
-              <div className="widget widget_categories">
-                <h3 className="widget_title">Product categories</h3>
-                <ul className="list-unstyled">
-                  <li>
-                    <Link to="#" onClick={() => handleCategoryChange("")}>
-                      All <span className="ml-2">({filteredCars.length})</span>
-                    </Link>
-                  </li>
+
+              {/* Categories with badges */}
+              <div className="filter-section">
+                <h3 className="filter-title">
+                  <i className="fas fa-car"></i> Marques
+                </h3>
+                <div className="categories-list">
+                  <div 
+                    className={`category-item ${selectedCategory === "" ? 'active' : ''}`}
+                    onClick={() => handleCategoryChange("")}
+                  >
+                    <div className="category-content">
+                      <i className="fas fa-layer-group"></i>
+                      <span>Toutes les marques</span>
+                    </div>
+                    <span className="badge">{filteredCars.length}</span>
+                  </div>
                   {carMakes.map((make, index) => (
-                    <li key={index}>
-                      <Link to="#" onClick={() => handleCategoryChange(make)}>
-                        {make}
-                      </Link>
-                      <span className="ml-2">({filteredCars.filter(car => car.make === make).length})</span>
-                    </li>
+                    <div 
+                      key={index}
+                      className={`category-item ${selectedCategory === make ? 'active' : ''}`}
+                      onClick={() => handleCategoryChange(make)}
+                    >
+                      <div className="category-content">
+                        <i className="fas fa-car"></i>
+                        <span>{make}</span>
+                      </div>
+                      <span className="badge">
+                        {filteredCars.filter(car => car.make === make).length}
+                      </span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
-              <div className="widget widget_price_filter">
-                <h4 className="widget_title">Filter By Price</h4>
-                <div className="range-slider mb-4">
+
+              {/* Price Range with improved slider */}
+              <div className="filter-section">
+                <h3 className="filter-title">
+                  <i className="fas fa-tag"></i> Prix
+                </h3>
+                <div className="price-filter">
                   <Slider
                     range
                     min={0}
                     max={maxPrice}
                     value={range}
                     onChange={handleRangeChange}
+                    railStyle={{ 
+                      backgroundColor: '#e0e0e0',
+                      height: '4px'
+                    }}
+                    trackStyle={[{ 
+                      backgroundColor: '#E8092E',
+                      height: '4px'
+                    }]}
+                    handleStyle={[
+                      { 
+                        backgroundColor: 'white',
+                        borderColor: '#E8092E',
+                        borderWidth: '2px',
+                        width: '20px',
+                        height: '20px',
+                        marginTop: '-8px',
+                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                      },
+                      {
+                        backgroundColor: 'white',
+                        borderColor: '#E8092E',
+                        borderWidth: '2px',
+                        width: '20px',
+                        height: '20px',
+                        marginTop: '-8px',
+                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                      }
+                    ]}
                   />
-                  <div className="d-flex justify-content-between mt-2">
-                    <span>{range[0]} TND</span>
-                    <span>{range[1]} TND</span>
+                  <div className="price-range-display">
+                    <div className="price-box">
+                      <span className="price-label">Prix minimum</span>
+                      <span className="price-value">{range[0]} TND</span>
+                    </div>
+                    <div className="price-box">
+                      <span className="price-label">Prix maximum</span>
+                      <span className="price-value">{range[1]} TND</span>
+                    </div>
                   </div>
-                </div>
-                <div className="price-range mb-4">
-                  Price: <span className="from">{range[0]} TND</span> - <span className="to">{range[1]} TND</span>
                 </div>
               </div>
             </aside>
           </div>
-          <div className="col-xl-9 col-lg-8 order-lg-1">
-            <div className="shop-sort-bar mb-4">
-              <div className="row align-items-center">
-                <div className="col-md">
-                  <p className="woocommerce-result-count mb-0">
-                    Showing {startIdx + 1}-{endIdx} of {filteredCars.length} results
-                  </p>
-                </div>
-                <div className="col-md-auto">
-                  <Link to="/AddCar" className="btn btn-primary btn-sm-add-car">Add Car</Link>
-                </div>
-                <div className="col-md-3">
-                  <form className="woocommerce-ordering">
-                    <div className="form-group mb-0">
-                      <select
-                        name="orderby"
-                        className="form-control orderby"
-                        aria-label="Shop order"
-                        value={sortOrder}
-                        onChange={handleSortChange}
-                      >
-                        <option value="date">Sort by latest</option>
-                        <option value="price">Sort by price: low to high</option>
-                        <option value="price-desc">Sort by price: high to low</option>
-                      </select>
-                    </div>
-                  </form>
+          <div className="col-xl-9 col-lg-8">
+            <div className="shop-header">
+              <div className="results-info">
+                <i className="fas fa-car-side"></i>
+                <span>
+                  Affichage de <strong>{startIdx + 1}-{endIdx}</strong> sur <strong>{filteredCars.length}</strong> résultats
+                </span>
+              </div>
+              <div className="shop-actions">
+                <Link to="/AddCar" className="btn-add-car">
+                  <i className="fas fa-plus"></i>
+                  <span>Ajouter une voiture</span>
+                </Link>
+                <div className="sort-wrapper">
+                  <select
+                    className="sort-select"
+                    value={sortOrder}
+                    onChange={handleSortChange}
+                  >
+                    <option value="date">Plus récent</option>
+                    <option value="price">Prix croissant</option>
+                    <option value="price-desc">Prix décroissant</option>
+                  </select>
                 </div>
               </div>
             </div>
             <div className="row">
               {displayedCars.map((car) => (
                 <div className="col-md-4 mb-4" key={car.id}>
-                  <div className="card h-100">
-                    <CarImageCarousel images={car.images} />
-                    <div className="card-body">
-                      <h5 className="card-title">{car.make} {car.model}</h5>
-                      <p className="card-text">Price: {car.price} TND</p>
-                      <div className="d-flex align-items-center">
-                        <Link to={`/shop-details/${car.id}`} className="link-btn">
-                          View Details <i className="fas fa-arrow-right" />
-                        </Link>
+                  <div className="car-card">
+                    <div className="car-image">
+                      <CarImageCarousel images={car.images} />
+                      <div className="car-overlay">
+                        <span className="price-tag">{car.price} TND</span>
                         <button 
                           onClick={() => saveCarToFavorites(car)} 
-                          className="btn btn-favorite"
-                          style={{ marginLeft: "10px", border: "none", background: "none" }}
+                          className="favorite-btn"
                         >
-                          <i className={`fas fa-heart ${isCarFavorite(car.id) ? 'text-danger' : 'text-muted'}`} />
+                          <i className={`fas fa-heart ${isCarFavorite(car.id) ? 'active' : ''}`} />
                         </button>
+                      </div>
+                    </div>
+                    <div className="car-info">
+                      <div className="car-header">
+                        <h3 className="car-title">{car.make} {car.model}</h3>
+                        <span className="car-year">{car.year}</span>
+                      </div>
+                      
+                      <div className="car-specs">
+                        <div className="spec-item">
+                          <i className="fas fa-tachometer-alt"></i>
+                          <span>{car.mileage} km</span>
+                        </div>
+                        <div className="spec-item">
+                          <i className="fas fa-horse"></i>
+                          <span>{car.powerRating} HP</span>
+                        </div>
+                      </div>
+
+                      <div className="car-actions">
+                        <Link to={`/shop-details/${car.id}`} className="details-btn">
+                          Voir Détails <i className="fas fa-arrow-right" />
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -278,6 +352,496 @@ const ShopArea = () => {
           </div>
         </div>
       </div>
+      <style jsx>{`
+        .car-card {
+          background: white;
+          border-radius: 20px;
+          overflow: hidden;
+          box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+          transition: all 0.3s ease;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .car-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .car-image {
+          position: relative;
+          height: 220px;
+          overflow: hidden;
+        }
+
+        .car-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          padding: 15px;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          z-index: 2;
+        }
+
+        .price-tag {
+          background: rgba(232, 9, 46, 0.9);
+          color: white;
+          padding: 8px 15px;
+          border-radius: 25px;
+          font-weight: 600;
+          font-size: 1.1rem;
+          backdrop-filter: blur(5px);
+          box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+          transition: all 0.3s ease;
+        }
+
+        .car-card:hover .price-tag {
+          transform: translateY(5px);
+          background: rgba(232, 9, 46, 1);
+        }
+
+        .favorite-btn {
+          background: rgba(255, 255, 255, 0.9);
+          border: none;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          backdrop-filter: blur(5px);
+          box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+          transition: all 0.3s ease;
+        }
+
+        .favorite-btn i {
+          color: #666;
+          font-size: 1.2rem;
+          transition: all 0.3s ease;
+        }
+
+        .favorite-btn i.active {
+          color: #E8092E;
+        }
+
+        .favorite-btn:hover {
+          transform: scale(1.1);
+        }
+
+        .car-info {
+          padding: 20px;
+          flex-grow: 1;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .car-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 15px;
+        }
+
+        .car-title {
+          font-size: 1.3rem;
+          font-weight: 600;
+          color: #2c3e50;
+          margin: 0;
+        }
+
+        .car-year {
+          background: #f8f9fa;
+          padding: 5px 10px;
+          border-radius: 20px;
+          font-size: 0.9rem;
+          color: #666;
+        }
+
+        .car-specs {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 15px;
+          margin-bottom: 20px;
+          padding: 15px;
+          background: #f8f9fa;
+          border-radius: 12px;
+        }
+
+        .spec-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .spec-item i {
+          color: #E8092E;
+          font-size: 1.1rem;
+          background: rgba(232, 9, 46, 0.1);
+          padding: 8px;
+          border-radius: 8px;
+        }
+
+        .spec-item span {
+          font-size: 0.9rem;
+          color: #666;
+        }
+
+        .car-actions {
+          margin-top: auto;
+        }
+
+        .details-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 25px;
+          background: #E8092E;
+          color: white;
+          border-radius: 25px;
+          text-decoration: none;
+          font-weight: 500;
+          width: 100%;
+          justify-content: center;
+          transition: all 0.3s ease;
+        }
+
+        .details-btn:hover {
+          background: #c7082a;
+          transform: translateX(5px);
+        }
+
+        @media (max-width: 768px) {
+          .car-image {
+            height: 180px;
+          }
+
+          .car-title {
+            font-size: 1.1rem;
+          }
+
+          .price-tag {
+            font-size: 1rem;
+            padding: 6px 12px;
+          }
+
+          .car-specs {
+            padding: 10px;
+          }
+
+          .spec-item i {
+            padding: 6px;
+          }
+        }
+
+        .sidebar-filter {
+          background: white;
+          border-radius: 20px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+          position: sticky;
+          top: 20px;
+        }
+
+        .filter-section {
+          padding: 25px;
+          border-bottom: 1px solid #f0f0f0;
+          transition: all 0.3s ease;
+        }
+
+        .filter-section:hover {
+          background: #fafafa;
+        }
+
+        .filter-title {
+          font-size: 1.2rem;
+          color: #2c3e50;
+          margin-bottom: 20px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .filter-title i {
+          color: #E8092E;
+          background: rgba(232, 9, 46, 0.1);
+          padding: 8px;
+          border-radius: 8px;
+        }
+
+        .search-input-wrapper {
+          position: relative;
+        }
+
+        .search-input-wrapper input {
+          width: 100%;
+          padding: 12px 45px 12px 15px;
+          border: 2px solid #e0e0e0;
+          border-radius: 12px;
+          font-size: 0.95rem;
+          transition: all 0.3s ease;
+        }
+
+        .search-input-wrapper input:focus {
+          border-color: #E8092E;
+          outline: none;
+          box-shadow: 0 0 0 3px rgba(232, 9, 46, 0.1);
+        }
+
+        .search-btn {
+          position: absolute;
+          right: 5px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          color: #666;
+          padding: 10px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+          color: #E8092E;
+        }
+
+        .categories-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .category-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 15px;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          background: #f8f9fa;
+        }
+
+        .category-content {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .category-item:hover {
+          background: #f0f0f0;
+          transform: translateX(5px);
+        }
+
+        .category-item.active {
+          background: #E8092E;
+          color: white;
+        }
+
+        .badge {
+          background: rgba(0, 0, 0, 0.1);
+          padding: 4px 10px;
+          border-radius: 20px;
+          font-size: 0.85rem;
+          transition: all 0.3s ease;
+        }
+
+        .category-item.active .badge {
+          background: rgba(255, 255, 255, 0.2);
+        }
+
+        .price-range-display {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
+          margin-top: 25px;
+        }
+
+        .price-box {
+          background: #f8f9fa;
+          padding: 12px;
+          border-radius: 12px;
+          text-align: center;
+          transition: all 0.3s ease;
+        }
+
+        .price-box:hover {
+          background: white;
+          box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .price-label {
+          display: block;
+          font-size: 0.85rem;
+          color: #666;
+          margin-bottom: 5px;
+        }
+
+        .price-value {
+          font-weight: 600;
+          color: #E8092E;
+        }
+
+        .shop-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: white;
+          padding: 20px 25px;
+          border-radius: 15px;
+          box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+          margin-bottom: 30px;
+          transition: all 0.3s ease;
+        }
+
+        .shop-header:hover {
+          box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+
+        .results-info {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          color: #666;
+          font-size: 0.95rem;
+        }
+
+        .results-info i {
+          color: #E8092E;
+          background: rgba(232, 9, 46, 0.1);
+          padding: 10px;
+          border-radius: 10px;
+          font-size: 1.1rem;
+        }
+
+        .results-info strong {
+          color: #2c3e50;
+          font-weight: 600;
+        }
+
+        .shop-actions {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+        }
+
+        .btn-add-car {
+          background: #E8092E;
+          color: white;
+          padding: 12px 24px;
+          border-radius: 25px;
+          text-decoration: none;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-weight: 500;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(232, 9, 46, 0.2);
+        }
+
+        .btn-add-car:hover {
+          background: #c7082a;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(232, 9, 46, 0.3);
+        }
+
+        .btn-add-car i {
+          font-size: 1.1rem;
+        }
+
+        .sort-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+        }
+
+        .sort-select {
+          appearance: none;
+          width: 180px;
+          height: 50px;
+          padding: 0;
+          border: 1px solid #e0e0e0;
+          border-radius: 25px;
+          background: #fff;
+          color: #666;
+          font-size: 19px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          text-align: center;
+          text-align-last: center;
+          -moz-text-align-last: center;
+          -webkit-text-align-last: center;
+          padding-right: 30px;
+          padding-bottom: 4px;
+          line-height: 36px;
+          background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+          background-repeat: no-repeat;
+          background-position: right 15px center;
+          background-size: 12px;
+        }
+
+        .sort-select option {
+          text-align: center;
+          padding: 10px;
+          font-size: 19px;
+        }
+
+        .sort-select:hover {
+          border-color: #E8092E;
+        }
+
+        .sort-select:focus {
+          outline: none;
+          border-color: #E8092E;
+        }
+
+        /* Supprime la flèche par défaut */
+        .sort-select:-moz-focusring {
+          color: transparent;
+          text-shadow: 0 0 0 #666;
+        }
+
+        .sort-select::-ms-expand {
+          display: none;
+        }
+
+        @media (max-width: 768px) {
+          .sidebar-filter {
+            position: relative;
+            top: 0;
+            margin-bottom: 20px;
+          }
+
+          .shop-header {
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+          }
+
+          .shop-actions {
+            width: 100%;
+            flex-direction: column;
+            gap: 15px;
+          }
+
+          .btn-add-car {
+            width: 100%;
+            justify-content: center;
+          }
+
+          .sort-wrapper {
+            width: 100%;
+          }
+
+          .sort-select {
+            width: 100%;
+          }
+        }
+      `}</style>
       <ToastContainer />
     </section>
   );
