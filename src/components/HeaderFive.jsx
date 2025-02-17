@@ -50,6 +50,8 @@ const HeaderFive = () => {
 
   // Composant du menu utilisateur optimisé
   const UserMenu = () => {
+    const { user } = useUser();
+    
     const userMenuStyle = {
       display: 'flex',
       alignItems: 'center',
@@ -59,6 +61,13 @@ const HeaderFive = () => {
       backgroundColor: user ? '#f8f9fa' : 'transparent',
       color: '#333',
       textDecoration: 'none',
+    };
+
+    const adminButtonStyle = {
+      ...userMenuStyle,
+      backgroundColor: '#E8092E',
+      color: 'white',
+      marginRight: '10px',
     };
 
     const userIconStyle = {
@@ -103,12 +112,22 @@ const HeaderFive = () => {
           <li style={{ position: 'relative', marginRight: '20px' }}>
             {user ? (
               <div style={{ display: 'flex', alignItems: 'center' }}>
+                {user.role === 'ADMIN' && (
+                  <Link 
+                    to="/admin" 
+                    style={adminButtonStyle}
+                    className="admin-button hover-effect"
+                  >
+                    <i className="fas fa-user-shield" style={{ marginRight: '5px' }}></i>
+                    DASHBOARD
+                  </Link>
+                )}
                 <Link 
                   to={`/profile/${user.username}`} 
                   style={userMenuStyle}
                   className="user-account hover-effect"
                 >
-                  <i className="far fa-user" style={userIconStyle}></i>
+                  <i className="far fa-user" style={{ marginRight: '8px' }}></i>
                   <span style={{ fontWeight: '500' }}>{user.username}</span>
                 </Link>
                 <button
@@ -126,23 +145,28 @@ const HeaderFive = () => {
                 style={userMenuStyle}
                 className="hover-effect"
               >
-                <i className="far fa-user" style={userIconStyle}></i>
+                <i className="far fa-user" style={{ marginRight: '8px' }}></i>
                 <span>Account</span>
               </Link>
             )}
           </li>
-          <li style={menuItemStyle}>
-            <Link to="/wishlist" style={userMenuStyle} className="hover-effect">
-              <i className="far fa-heart" style={userIconStyle}></i>
-              {wishlistCount > 0 && <span style={countStyle}>{wishlistCount}</span>}
-            </Link>
-          </li>
-          <li style={menuItemStyle}>
-            <Link to="/cart" style={userMenuStyle} className="hover-effect">
-              <i className="fas fa-shopping-cart" style={userIconStyle}></i>
-              <span style={countStyle}>0</span>
-            </Link>
-          </li>
+          {/* N'afficher les icônes favoris et panier que si l'utilisateur n'est pas admin */}
+          {(!user || user.role !== 'ADMIN') && (
+            <>
+              <li style={menuItemStyle}>
+                <Link to="/wishlist" style={userMenuStyle} className="hover-effect">
+                  <i className="far fa-heart" style={userIconStyle}></i>
+                  {wishlistCount > 0 && <span style={countStyle}>{wishlistCount}</span>}
+                </Link>
+              </li>
+              <li style={menuItemStyle}>
+                <Link to="/cart" style={userMenuStyle} className="hover-effect">
+                  <i className="fas fa-shopping-cart" style={userIconStyle}></i>
+                  <span style={countStyle}>0</span>
+                </Link>
+              </li>
+            </>
+          )}
         </ul>
       </div>
     );
@@ -165,17 +189,21 @@ const HeaderFive = () => {
   );
 
   // Menu principal
-  const MainMenu = () => (
-    <nav className="main-menu d-none d-lg-inline-block">
-      <ul>
-        <li><NavLink to="/" className={({isActive}) => isActive ? "active" : ""}>Home</NavLink></li>
-        <li><NavLink to="/about" className={({isActive}) => isActive ? "active" : ""}>About Us</NavLink></li>
-        <li><NavLink to="/service" className={({isActive}) => isActive ? "active" : ""}>Service</NavLink></li>
-        <li><NavLink to="/shop" className={({isActive}) => isActive ? "active" : ""}>Shop Page</NavLink></li>
-        <li><NavLink to="/contact" className={({isActive}) => isActive ? "active" : ""}>Contact</NavLink></li>
-      </ul>
-    </nav>
-  );
+  const MainMenu = () => {
+    const { user } = useUser();
+
+    return (
+      <nav className="main-menu d-none d-lg-inline-block">
+        <ul>
+          <li><NavLink to="/" className={({isActive}) => isActive ? "active" : ""}>Home</NavLink></li>
+          <li><NavLink to="/about" className={({isActive}) => isActive ? "active" : ""}>About Us</NavLink></li>
+          <li><NavLink to="/service" className={({isActive}) => isActive ? "active" : ""}>Service</NavLink></li>
+          <li><NavLink to="/shop" className={({isActive}) => isActive ? "active" : ""}>Shop Page</NavLink></li>
+          <li><NavLink to="/contact" className={({isActive}) => isActive ? "active" : ""}>Contact</NavLink></li>
+        </ul>
+      </nav>
+    );
+  };
 
   return (
     <header className="nav-header header-layout4">
@@ -270,6 +298,36 @@ const styles = `
       width: 100%;
       justify-content: center;
     }
+  }
+
+  .admin-link {
+    color: #E8092E !important;
+    font-weight: 600;
+  }
+
+  .admin-link:hover {
+    background-color: #E8092E !important;
+    color: white !important;
+    border-radius: 5px;
+    padding: 5px 10px;
+  }
+
+  .admin-link.active {
+    background-color: #E8092E !important;
+    color: white !important;
+    border-radius: 5px;
+    padding: 5px 10px;
+  }
+
+  .admin-button {
+    background-color: #E8092E !important;
+    color: white !important;
+  }
+
+  .admin-button:hover {
+    background-color: #c7082a !important;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
 `;
 
