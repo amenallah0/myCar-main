@@ -238,6 +238,11 @@ export default function ProfilePage() {
                 <span className="stat-label">Expertises</span>
               </div>
             </div>
+            {user?.role !== 'EXPERT' && (
+              <button className="become-expert-btn" onClick={() => setShowModal(true)}>
+                Devenir expert
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -560,6 +565,27 @@ export default function ProfilePage() {
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
+        .become-expert-btn {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          border: 2px solid white;
+          padding: 8px 20px;
+          border-radius: 20px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          margin-top: 10px;
+        }
+
+        .become-expert-btn:hover {
+          background: rgba(255, 255, 255, 0.3);
+          transform: translateY(-1px);
+        }
+
+        .modal-blur-effect {
+          backdrop-filter: blur(5px);
+        }
+
         @media (max-width: 768px) {
           .profile-header {
             flex-direction: column;
@@ -586,12 +612,12 @@ export default function ProfilePage() {
         style={{ marginTop: '70px' }}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Become an Expert</Modal.Title>
+          <Modal.Title>Devenir Expert</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleExpertFormSubmit}>
             <Form.Group controlId="formSpecialization" className="mt-1">
-              <Form.Label>Specialization</Form.Label>
+              <Form.Label>Spécialisation</Form.Label>
               <Form.Control
                 type="text"
                 name="specialization"
@@ -601,7 +627,7 @@ export default function ProfilePage() {
               />
             </Form.Group>
             <Form.Group controlId="formExperience" className="mt-1">
-              <Form.Label>Experience (years)</Form.Label>
+              <Form.Label>Expérience (années)</Form.Label>
               <Form.Control
                 type="number"
                 name="experience"
@@ -611,7 +637,7 @@ export default function ProfilePage() {
               />
             </Form.Group>
             <Form.Group controlId="formCurrentPosition" className="mt-1">
-              <Form.Label>Current Position</Form.Label>
+              <Form.Label>Poste actuel</Form.Label>
               <Form.Control
                 type="text"
                 name="currentPosition"
@@ -621,7 +647,7 @@ export default function ProfilePage() {
               />
             </Form.Group>
             <Form.Group controlId="formDiploma" className="mt-1">
-              <Form.Label>Upload Diploma</Form.Label>
+              <Form.Label>Diplôme</Form.Label>
               <Form.Control
                 type="file"
                 name="diploma"
@@ -629,8 +655,8 @@ export default function ProfilePage() {
                 required
               />
             </Form.Group>
-            <Button variant="primary" type="submit" className="mt-1 btn-block">
-              Submit
+            <Button variant="primary" type="submit" className="mt-3 w-100">
+              Soumettre
             </Button>
           </Form>
         </Modal.Body>
