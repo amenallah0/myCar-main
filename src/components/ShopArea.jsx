@@ -125,17 +125,18 @@ const ShopArea = () => {
 
   const CarImageCarousel = ({ images }) => {
     return (
-      <Carousel showThumbs={false} infiniteLoop autoPlay>
-        {images.map((image, index) => (
-          <div key={index} style={{ height: '300px', overflow: 'hidden' }}>
-            <img
-              src={`http://localhost:8081/api/files/download/${image.filename}`}
-              alt={`Car image ${index + 1}`}
-              style={{ width: '100%', objectFit: 'fit' }}
-            />
-          </div>
-        ))}
-      </Carousel>
+      <div style={{ height: '300px', overflow: 'hidden' }}>
+        <img
+          src={`http://localhost:8081/api/files/download/${images[0]?.filename}`}
+          alt="Car image"
+          style={{ 
+            width: '100%', 
+            height: '100%',
+            objectFit: 'cover'
+          }}
+          loading="lazy"
+        />
+      </div>
     );
   };
 
@@ -284,7 +285,7 @@ const ShopArea = () => {
                 </div>
               </div>
             </div>
-            <div className="row">
+            <div className="row" style={{ willChange: 'transform' }}>
               {displayedCars.map((car) => (
                 <div className="col-md-4 mb-4" key={car.id}>
                   <div className="car-card">
