@@ -13,25 +13,50 @@ const ApiAnnonceService = {
         }
     },
     createAnnonce: async (annonce) => {
-        const token = localStorage.getItem('token'); // Assurez-vous que le token est valide
-        console.log("Données envoyées pour créer l'annonce:", annonce); // Affichez les données de l'annonce
-    
+        const token = localStorage.getItem('token');
+        
+        // Convertir les dates en format ISO pour le backend
+        const formattedAnnonce = {
+            ...annonce,
+            dateDebut: annonce.dateDebut ? new Date(annonce.dateDebut).toISOString() : null,
+            dateExpiration: annonce.dateExpiration ? new Date(annonce.dateExpiration).toISOString() : null
+        };
+
         try {
-            const response = await axios.post(API_URL, annonce, {
+            const response = await axios.post(API_URL, formattedAnnonce, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
             });
-            console.log("Réponse du serveur:", response.data); // Affichez la réponse du serveur
             return response.data;
         } catch (error) {
-            console.error('Erreur lors de la création de l\'annonce:', error.response ? error.response.data : error.message);
-            throw error; // Relancer l'erreur pour la gérer ailleurs
+            console.error('Erreur lors de la création de l\'annonce:', error);
+            throw error;
         }
     },
     updateAnnonce: async (annonceId, annonce) => {
-        const response = await axios.put(`${API_URL}/${annonceId}`, annonce);
-        return response.data;
+        const token = localStorage.getItem('token');
+        
+        // Convertir les dates en format ISO pour le backend
+        const formattedAnnonce = {
+            ...annonce,
+            dateDebut: annonce.dateDebut ? new Date(annonce.dateDebut).toISOString() : null,
+            dateExpiration: annonce.dateExpiration ? new Date(annonce.dateExpiration).toISOString() : null
+        };
+
+        try {
+            const response = await axios.put(`${API_URL}/${annonceId}`, formattedAnnonce, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour de l\'annonce:', error);
+            throw error;
+        }
     },
     deleteAnnonce: async (annonceId) => {
         await axios.delete(`${API_URL}/${annonceId}`);

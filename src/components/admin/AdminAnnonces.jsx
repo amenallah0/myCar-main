@@ -35,9 +35,36 @@ const AdminAnnonces = ({ annonces, onDelete, onEdit, onCreate }) => {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const formatDate = (date) => {
-        const isoDate = new Date(date).toISOString(); // Convertit en format ISO 8601
-        return isoDate.split('.')[0]; // Supprime les millisecondes
+    const formatDateForDisplay = (dateArray) => {
+        if (!dateArray || !Array.isArray(dateArray)) return 'Date non disponible';
+        try {
+            // Convertir le tableau de date [year, month, day, hour, minute, second] en Date
+            const [year, month, day, hour, minute, second] = dateArray;
+            const date = new Date(year, month - 1, day, hour, minute, second);
+            
+            return date.toLocaleString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            console.error('Erreur de format de date:', dateArray);
+            return 'Date invalide';
+        }
+    };
+
+    const formatDate = (dateArray) => {
+        if (!dateArray || !Array.isArray(dateArray)) return '';
+        try {
+            const [year, month, day, hour, minute] = dateArray;
+            // Créer une date au format YYYY-MM-DDTHH:mm
+            return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+        } catch (error) {
+            console.error('Erreur de formatage de date:', error);
+            return '';
+        }
     };
 
     const handleImageChange = (e) => {
@@ -64,15 +91,29 @@ const AdminAnnonces = ({ annonces, onDelete, onEdit, onCreate }) => {
                 titre: formData.titre,
                 description: formData.description,
                 image: formData.image,
-                dateDebut: formatDate(formData.dateDebut),
-                dateExpiration: formatDate(formData.dateExpiration)
+                dateDebut: new Date(formData.dateDebut).toISOString(), // Format ISO pour le backend
+                dateExpiration: new Date(formData.dateExpiration).toISOString()
             };
-            console.log("Données envoyées pour créer l'annonce:", annonceData); // Pour déboguer
-            const createdAnnonce = await ApiAnnonceService.createAnnonce(annonceData);
-            console.log("Annonce créée avec succès:", createdAnnonce);
-            // Optionnel : Réinitialisez le formulaire ou redirigez l'utilisateur
+            
+            if (currentAnnonce) {
+                await ApiAnnonceService.updateAnnonce(currentAnnonce.id, annonceData);
+                onEdit && onEdit();
+            } else {
+                await ApiAnnonceService.createAnnonce(annonceData);
+                onCreate && onCreate();
+            }
+            
+            setShowModal(false);
+            setFormData({
+                titre: '',
+                description: '',
+                image: '',
+                dateDebut: '',
+                dateExpiration: ''
+            });
         } catch (error) {
-            console.error("Erreur lors de la création de l'annonce:", error);
+            console.error("Erreur lors de la soumission:", error);
+            alert("Une erreur est survenue lors de la sauvegarde de l'annonce");
         }
     };
 
@@ -86,8 +127,8 @@ const AdminAnnonces = ({ annonces, onDelete, onEdit, onCreate }) => {
                         <h3>{annonce.titre}</h3>
                         <p>{annonce.description}</p>
                         <img src={annonce.image} alt={annonce.titre} />
-                        <p>Date de début: {annonce.dateDebut}</p>
-                        <p>Date d'expiration: {annonce.dateExpiration}</p>
+                        <p>Date de début: {formatDateForDisplay(annonce.dateDebut)}</p>
+                        <p>Date d'expiration: {formatDateForDisplay(annonce.dateExpiration)}</p>
                         <button onClick={() => handleShow(annonce)}>Modifier</button>
                         <button onClick={() => onDelete(annonce.id)}>Supprimer</button>
                     </li>
@@ -135,7 +176,7 @@ const AdminAnnonces = ({ annonces, onDelete, onEdit, onCreate }) => {
                             <Form.Control
                                 type="datetime-local"
                                 name="dateDebut"
-                                value={formData.dateDebut}
+                                value={formData.dateDebut ? formatDate(formData.dateDebut) : ''}
                                 onChange={handleChange}
                                 required
                             />
@@ -145,7 +186,7 @@ const AdminAnnonces = ({ annonces, onDelete, onEdit, onCreate }) => {
                             <Form.Control
                                 type="datetime-local"
                                 name="dateExpiration"
-                                value={formData.dateExpiration}
+                                value={formData.dateExpiration ? formatDate(formData.dateExpiration) : ''}
                                 onChange={handleChange}
                                 required
                             />

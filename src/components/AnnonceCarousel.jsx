@@ -1,5 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
 
+const formatDate = (dateArray) => {
+    if (!dateArray || !Array.isArray(dateArray)) return 'Date non disponible';
+    try {
+        // Convertir le tableau de date [year, month, day, hour, minute, second] en Date
+        const [year, month, day, hour, minute] = dateArray;
+        // Attention: les mois dans JavaScript commencent à 0, donc on soustrait 1 du mois
+        const date = new Date(year, month - 1, day, hour, minute);
+        
+        return date.toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (error) {
+        console.error('Erreur de format de date:', dateArray);
+        return 'Date non disponible';
+    }
+};
+
 const AnnonceCarousel = ({ annonces }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
@@ -84,10 +105,12 @@ const AnnonceCarousel = ({ annonces }) => {
                                 <p style={descriptionStyle}>{annonce.description}</p>
                                 <div style={dateContainerStyle}>
                                     <p style={dateStyle}>
-                                        Début: {new Date(annonce.dateDebut).toLocaleDateString()}
+                                        <span style={dateLabelStyle}>Début:</span>{' '}
+                                        {formatDate(annonce.dateDebut)}
                                     </p>
                                     <p style={dateStyle}>
-                                        Fin: {new Date(annonce.dateExpiration).toLocaleDateString()}
+                                        <span style={dateLabelStyle}>Fin:</span>{' '}
+                                        {formatDate(annonce.dateExpiration)}
                                     </p>
                                 </div>
                             </div>
@@ -189,9 +212,18 @@ const dateContainerStyle = {
 };
 
 const dateStyle = {
-    fontSize: '1em',
+    fontSize: '1.1em',
     color: 'rgba(255, 255, 255, 0.9)',
     textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
+    marginBottom: '5px',
+    display: 'flex',
+    alignItems: 'center',
+};
+
+const dateLabelStyle = {
+    fontWeight: 'bold',
+    color: '#fff',
+    marginRight: '8px',
 };
 
 const buttonStyle = {
