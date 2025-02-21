@@ -11,14 +11,30 @@ import BlogAreaTwo from "../components/BlogAreaTwo";
 import SubscribeTwo from "../components/SubscribeTwo";
 import FooterAreaFour from "../components/FooterAreaFour";
 import Preloader from "../helper/Preloader";
+import AnnonceCarousel from "../components/AnnonceCarousel";
+import ApiAnnonceService from "../services/apiAnnonceServices";
 
 const HomePageSix = () => {
   let [active, setActive] = useState(true);
+  const [annonces, setAnnonces] = useState([]);
+
   useEffect(() => {
     setTimeout(function () {
       setActive(false);
     }, 2000);
+
+    const fetchAnnonces = async () => {
+      try {
+        const data = await ApiAnnonceService.getAnnonces();
+        setAnnonces(data);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des annonces:", error);
+      }
+    };
+
+    fetchAnnonces();
   }, []);
+
   return (
     <>
       {/* Preloader */}
@@ -26,6 +42,8 @@ const HomePageSix = () => {
 
       {/* Header Five */}
       <HeaderFive />
+
+      <AnnonceCarousel annonces={annonces} />
 
       {/* Hero Six */}
       <HeroSix />
@@ -49,7 +67,7 @@ const HomePageSix = () => {
       {/* <ClientAreaFour /> */}
 
       {/* Blog Area Two */}
-        <BlogAreaTwo />
+      <BlogAreaTwo />
 
       {/* Subscribe Two */}
       <SubscribeTwo />

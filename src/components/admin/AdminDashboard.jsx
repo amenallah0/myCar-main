@@ -1,7 +1,7 @@
 // src/components/admin/AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Container, Row, Col, Nav, Modal } from 'react-bootstrap';
+import { Container, Row, Col, Nav, Modal, Form, Button } from 'react-bootstrap';
 import AdminSidebar from './AdminSidebar';
 import AdminOverview from './AdminOverview';
 import AdminUsers from './AdminUsers';
@@ -15,8 +15,13 @@ import ApiCarService from '../../services/apiCarServices';
 import ApiService from '../../services/apiUserServices';
 import ApiExpertService from '../../services/apiExpertServices';
 import ApiExpertRequestService from '../../services/apiExpertRequestServices';
+import ApiAnnonceService from '../../services/apiAnnonceServices';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AdminAnnonces from './AdminAnnonces';
+import { useUser } from '../../contexts/userContext';
+import { useNavigate } from 'react-router-dom';
+import AnnonceCarousel from '../AnnonceCarousel';
 
 // Styled Components
 const StyledDashboard = styled.div`
@@ -48,6 +53,8 @@ const StyledModal = styled(Modal)`
 `;
 
 const AdminDashboard = () => {
+  const { user } = useUser();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [users, setUsers] = useState([]);
   const [cars, setCars] = useState([]);
@@ -76,12 +83,31 @@ const AdminDashboard = () => {
   const [selectedExpert, setSelectedExpert] = useState(null);
   const [expertRequests, setExpertRequests] = useState([]);
 
+  const [annonces, setAnnonces] = useState([]);
+  const [selectedAnnonce, setSelectedAnnonce] = useState(null);
+  const [showAnnonceModal, setShowAnnonceModal] = useState(false);
+  const [annonceFormData, setAnnonceFormData] = useState({
+    titre: '',
+    description: '',
+    image: '',
+    dateDebut: '',
+    dateExpiration: ''
+  });
+
+  useEffect(() => {
+    if (!user || user.role !== 'ADMIN') {
+      toast.error('Accès refusé. Vous devez être un administrateur pour accéder à cette page.');
+      navigate('/signin');
+    }
+  }, [user, navigate]);
+
   useEffect(() => {
     console.log('Fetching data...');
     fetchUsers();
     fetchCars();
     fetchExperts();
     fetchExpertRequests();
+    fetchAnnonces();
   }, []);
 
   const fetchUsers = async () => {
@@ -322,6 +348,72 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchAnnonces = async () => {
+    try {
+      const response = await ApiAnnonceService.getAllAnnonces(user.token);
+      setAnnonces(response);
+    } catch (error) {
+      console.error('Error fetching annonces:', error);
+      toast.error('Erreur lors de la récupération des annonces');
+    }
+  };
+
+  const handleCreateAnnonce = async (formData) => {
+    console.log("Tentative de création d'une annonce avec les données:", formData); // Affichez les données de l'annonce
+    try {
+      const createdAnnonce = await ApiAnnonceService.createAnnonce(formData);
+      console.log("Annonce créée avec succès:", createdAnnonce); // Affichez l'annonce créée
+      fetchAnnonces(); // Rafraîchir la liste des annonces
+      setShowModal(false);
+    } catch (error) {
+      console.error("Erreur lors de la création de l'annonce:", error); // Affichez l'erreur
+      toast.error('Erreur lors de la création de l\'annonce');
+    }
+  };
+
+  const handleEditAnnonce = async (annonceId, formData) => {
+    try {
+      await ApiAnnonceService.updateAnnonce(annonceId, formData);
+      fetchAnnonces(); // Rafraîchir la liste des annonces
+    } catch (error) {
+      console.error('Error updating annonce:', error);
+      toast.error('Erreur lors de la mise à jour de l\'annonce');
+    }
+  };
+
+  const handleDeleteAnnonce = async (annonceId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')) {
+      try {
+        await ApiAnnonceService.deleteAnnonce(annonceId);
+        fetchAnnonces(); // Rafraîchir la liste des annonces
+      } catch (error) {
+        console.error('Error deleting annonce:', error);
+        toast.error('Erreur lors de la suppression de l\'annonce');
+      }
+    }
+  };
+
+  const handleShowModal = () => {
+    setAnnonceFormData({
+      titre: '',
+      description: '',
+      image: '',
+      dateDebut: '',
+      dateExpiration: ''
+    });
+    setShowAnnonceModal(true);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setAnnonceFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await handleCreateAnnonce(annonceFormData);
+  };
+
   return (
     <StyledDashboard>
       <Container fluid>
@@ -363,6 +455,18 @@ const AdminDashboard = () => {
                 onReject={handleRejectExpert}
               />
             )}
+            {activeTab === 'annonces' && (
+              <div>
+                <h1>Gestion des Annonces</h1>
+                <Button onClick={handleShowModal}>Ajouter une Annonce</Button>
+                <AdminAnnonces 
+                  annonces={annonces}
+                  onDelete={handleDeleteAnnonce}
+                  onEdit={handleEditAnnonce}
+                  onCreate={handleCreateAnnonce}
+                />
+              </div>
+            )}
           </StyledContent>
         </Row>
 
@@ -376,7 +480,73 @@ const AdminDashboard = () => {
             {/* Add your form components here */}
           </Modal.Body>
         </StyledModal>
-      </Container>
+
+        <StyledModal show={showAnnonceModal} onHide={() => setShowAnnonceModal(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>
+              {selectedAnnonce ? 'Edit Annonce' : 'Add New Annonce'}
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form onSubmit={handleSubmit}>
+              <Form.Group controlId="formTitre">
+                <Form.Label>Titre</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="titre"
+                  value={annonceFormData.titre}
+                  onChange={handleChange}
+                  required
+                />
+              </Form.Group>
+              <Form.Group controlId="formDescription">
+                <Form.Label>Description</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  name="description"
+                  value={annonceFormData.description}
+                  onChange={handleChange}
+                  required
+                />
+              </Form.Group>
+              <Form.Group controlId="formImage">
+                <Form.Label>Image URL</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="image"
+                  value={annonceFormData.image}
+                  onChange={handleChange}
+                  required
+                />
+              </Form.Group>
+              <Form.Group controlId="formDateDebut">
+                <Form.Label>Date de début</Form.Label>
+                <Form.Control
+                  type="date"
+                  name="dateDebut"
+                  value={annonceFormData.dateDebut}
+                  onChange={handleChange}
+                  required
+                />
+              </Form.Group>
+              <Form.Group controlId="formDateExpiration">
+                <Form.Label>Date d'expiration</Form.Label>
+                <Form.Control
+                  type="date"
+                  name="dateExpiration"
+                  value={annonceFormData.dateExpiration}
+                  onChange={handleChange}
+                  required
+                />
+              </Form.Group>
+              <Button variant="primary" type="submit">
+                Ajouter
+              </Button>
+            </Form>
+          </Modal.Body>
+        </StyledModal>
+
+        <AnnonceCarousel annonces={annonces} autoplay={true} />      </Container>
     </StyledDashboard>
   );
 };

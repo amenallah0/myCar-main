@@ -65,6 +65,13 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
         <FaCog /> Settings
       </Nav.Link>
       <Nav.Link 
+        className={activeTab === 'annonces' ? 'active' : ''} 
+        onClick={() => setActiveTab('annonces')}
+      >
+        <i className="fas fa-bullhorn me-2"></i>
+        Annonces
+      </Nav.Link>
+      <Nav.Link 
         active={activeTab === 'experts'}
         onClick={() => setActiveTab('experts')}
       >
