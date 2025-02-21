@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { FaUsers, FaCar, FaMoneyBillWave, FaChartLine } from 'react-icons/fa';
+import { FaUsers, FaCar, FaMoneyBillWave } from 'react-icons/fa';
 import styled from 'styled-components';
 
 const OverviewContainer = styled.div`
@@ -90,8 +90,6 @@ const AdminOverview = ({ stats = {} }) => {
     carGrowth = 0,
     totalSales = 0,
     salesGrowth = 0,
-    activeListings = 0,
-    listingGrowth = 0
   } = stats;
 
   const statCards = useMemo(() => [
@@ -115,15 +113,8 @@ const AdminOverview = ({ stats = {} }) => {
       value: `$${totalSales.toLocaleString()}`,
       growth: salesGrowth,
       bgColor: '#2F855A'
-    },
-    {
-      icon: FaChartLine,
-      title: 'Active Listings',
-      value: activeListings,
-      growth: listingGrowth,
-      bgColor: '#C05621'
     }
-  ], [totalUsers, userGrowth, totalCars, carGrowth, totalSales, salesGrowth, activeListings, listingGrowth]);
+  ], [totalUsers, userGrowth, totalCars, carGrowth, totalSales, salesGrowth]);
 
   return (
     <OverviewContainer>

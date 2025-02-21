@@ -21,14 +21,14 @@ const formatDate = (dateArray) => {
     }
 };
 
-const AnnonceCarousel = ({ annonces }) => {
+const AnnonceCarousel = ({ annonces, autoplay = true, interval = 5000 }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
     const carouselRef = useRef(null);
     const intervalRef = useRef(null);
 
     useEffect(() => {
-        if (!annonces || annonces.length === 0) return;
+        if (!annonces || annonces.length === 0 || !autoplay) return;
 
         const startInterval = () => {
             intervalRef.current = setInterval(() => {
@@ -36,7 +36,7 @@ const AnnonceCarousel = ({ annonces }) => {
                     const newIndex = (currentIndex + 1) % annonces.length;
                     setCurrentIndex(newIndex);
                 }
-            }, 5000);
+            }, interval);
         };
 
         startInterval();
@@ -46,7 +46,7 @@ const AnnonceCarousel = ({ annonces }) => {
                 clearInterval(intervalRef.current);
             }
         };
-    }, [currentIndex, isPaused, annonces]);
+    }, [currentIndex, isPaused, annonces, autoplay, interval]);
 
     if (!annonces || annonces.length === 0) {
         return <p style={{ textAlign: 'center', fontSize: '1.5em', color: '#888' }}>Aucune annonce disponible.</p>;

@@ -6,10 +6,14 @@ import ShopArea from "../components/ShopArea";
 import Preloader from "../helper/Preloader";
 import { motion } from "framer-motion";
 import { Container, Row, Col } from "react-bootstrap";
+import SwiperCore, { Autoplay } from 'swiper';
 
 const ShopPage = () => {
   const [loading, setLoading] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Initialize Swiper modules
+  SwiperCore.use([Autoplay]);
 
   useEffect(() => {
     // Gestion du preloader

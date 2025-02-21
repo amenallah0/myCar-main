@@ -25,30 +25,31 @@ const CategoryAreaOne = () => {
         <h4 className="text-center fw-bold mb-4">Featured Car Brands</h4>
         <div className="row gx-0">
           <Swiper
-            spaceBetween={20}
-            slidesPerGroup={1}
-            speed={500} // Adjust speed for smooth scrolling
-            loop
-            autoplay={{ delay: 2000, disableOnInteraction: false }} // Adjust delay for smoother effect
-            className="mySwiper"
             modules={[FreeMode, Autoplay]}
+            spaceBetween={20}
+            slidesPerView={1}
+            speed={2000}
+            loop={true}
+            autoplay={{
+              delay: 2500,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true
+            }}
             breakpoints={{
-              0: {
+              // when window width is >= 640px
+              640: {
                 slidesPerView: 2,
               },
+              // when window width is >= 768px
               768: {
                 slidesPerView: 3,
               },
-              992: {
+              // when window width is >= 1024px
+              1024: {
                 slidesPerView: 4,
               },
-              1200: {
-                slidesPerView: 5,
-              },
-              1400: {
-                slidesPerView: 5,
-              },
             }}
+            className="category-slider-1"
           >
             {extendedCarBrands.map((brand) => (
               <SwiperSlide key={brand.id}>

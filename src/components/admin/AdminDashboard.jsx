@@ -37,19 +37,102 @@ const StyledSidebar = styled(Col)`
 `;
 
 const StyledContent = styled(Col)`
-  padding: 30px;
+  padding: 2rem;
+  background: #f8f9fa;
+  
+  .card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
 `;
 
 const StyledModal = styled(Modal)`
   .modal-content {
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   }
   
   .modal-header {
     background: #f8f9fa;
-    border-radius: 12px 12px 0 0;
+    border-bottom: 1px solid #eee;
+    padding: 1.5rem;
   }
+  
+  .modal-body {
+    padding: 2rem;
+  }
+  
+  .form-label {
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+  }
+  
+  .form-control {
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem;
+    transition: all 0.2s ease;
+    
+    &:focus {
+      border-color: #2196f3;
+      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+    }
+  }
+  
+  .btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: 8px;
+  }
+`;
+
+const DashboardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+`;
+
+const PageTitle = styled.h1`
+  font-size: 1.8rem;
+  color: #1a237e;
+  margin: 0;
+  font-weight: 600;
+`;
+
+const ActionButton = styled(Button)`
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  
+  &.primary {
+    background: #2196f3;
+    border: none;
+    
+    &:hover {
+      background: #1976d2;
+      transform: translateY(-2px);
+    }
+  }
+`;
+
+const FormActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
 `;
 
 const AdminDashboard = () => {
@@ -74,9 +157,7 @@ const AdminDashboard = () => {
     totalCars: 0,
     carGrowth: 0,
     totalSales: 0,
-    salesGrowth: 0,
-    activeListings: 0,
-    listingGrowth: 0
+    salesGrowth: 0
   });
 
   const [experts, setExperts] = useState([]);
@@ -196,9 +277,7 @@ const AdminDashboard = () => {
       totalCars: cars.length,
       carGrowth: calculateGrowth(cars),
       totalSales: calculateTotalSales(cars),
-      salesGrowth: 0, // Implement sales growth calculation
-      activeListings: cars.filter(car => car.status === 'AVAILABLE').length,
-      listingGrowth: 0 // Implement listings growth calculation
+      salesGrowth: 0 // Implement sales growth calculation
     });
   };
 
@@ -359,14 +438,12 @@ const AdminDashboard = () => {
   };
 
   const handleCreateAnnonce = async (formData) => {
-    console.log("Tentative de création d'une annonce avec les données:", formData); // Affichez les données de l'annonce
     try {
-      const createdAnnonce = await ApiAnnonceService.createAnnonce(formData);
-      console.log("Annonce créée avec succès:", createdAnnonce); // Affichez l'annonce créée
-      fetchAnnonces(); // Rafraîchir la liste des annonces
-      setShowModal(false);
+      await ApiAnnonceService.createAnnonce(formData);
+      await fetchAnnonces();
+      toast.success('Annonce créée avec succès');
     } catch (error) {
-      console.error("Erreur lors de la création de l'annonce:", error); // Affichez l'erreur
+      console.error('Error creating annonce:', error);
       toast.error('Erreur lors de la création de l\'annonce');
     }
   };
@@ -374,7 +451,8 @@ const AdminDashboard = () => {
   const handleEditAnnonce = async (annonceId, formData) => {
     try {
       await ApiAnnonceService.updateAnnonce(annonceId, formData);
-      fetchAnnonces(); // Rafraîchir la liste des annonces
+      await fetchAnnonces();
+      toast.success('Annonce mise à jour avec succès');
     } catch (error) {
       console.error('Error updating annonce:', error);
       toast.error('Erreur lors de la mise à jour de l\'annonce');
@@ -385,7 +463,8 @@ const AdminDashboard = () => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')) {
       try {
         await ApiAnnonceService.deleteAnnonce(annonceId);
-        fetchAnnonces(); // Rafraîchir la liste des annonces
+        await fetchAnnonces();
+        toast.success('Annonce supprimée avec succès');
       } catch (error) {
         console.error('Error deleting annonce:', error);
         toast.error('Erreur lors de la suppression de l\'annonce');
@@ -409,6 +488,22 @@ const AdminDashboard = () => {
     setAnnonceFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result;
+        if (base64String.length > 10000000) { // 10MB limit
+          toast.error("L'image est trop volumineuse. Veuillez choisir une image plus petite.");
+          return;
+        }
+        setAnnonceFormData(prev => ({ ...prev, image: base64String }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     await handleCreateAnnonce(annonceFormData);
@@ -423,7 +518,9 @@ const AdminDashboard = () => {
           </StyledSidebar>
           
           <StyledContent md={10}>
-            {activeTab === 'overview' && <AdminOverview stats={stats} />}
+            {activeTab === 'overview' && (
+              <AdminOverview stats={stats} />
+            )}
             {activeTab === 'users' && (
               <AdminUsers 
                 users={users}
@@ -456,16 +553,23 @@ const AdminDashboard = () => {
               />
             )}
             {activeTab === 'annonces' && (
-              <div>
-                <h1>Gestion des Annonces</h1>
-                <Button onClick={handleShowModal}>Ajouter une Annonce</Button>
+              <>
                 <AdminAnnonces 
                   annonces={annonces}
                   onDelete={handleDeleteAnnonce}
                   onEdit={handleEditAnnonce}
                   onCreate={handleCreateAnnonce}
                 />
-              </div>
+                {annonces && annonces.length > 0 && (
+                  <div className="mt-4">
+                    <AnnonceCarousel 
+                      annonces={annonces}
+                      autoplay={true}
+                      interval={5000}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </StyledContent>
         </Row>
@@ -481,72 +585,85 @@ const AdminDashboard = () => {
           </Modal.Body>
         </StyledModal>
 
-        <StyledModal show={showAnnonceModal} onHide={() => setShowAnnonceModal(false)}>
+        <StyledModal 
+          show={showAnnonceModal} 
+          onHide={() => setShowAnnonceModal(false)}
+          centered
+        >
           <Modal.Header closeButton>
             <Modal.Title>
-              {selectedAnnonce ? 'Edit Annonce' : 'Add New Annonce'}
+              {selectedAnnonce ? 'Modifier l\'annonce' : 'Créer une nouvelle annonce'}
             </Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Form onSubmit={handleSubmit}>
-              <Form.Group controlId="formTitre">
-                <Form.Label>Titre</Form.Label>
+              <Form.Group className="mb-4" controlId="formTitre">
+                <Form.Label>Titre de l'annonce</Form.Label>
                 <Form.Control
                   type="text"
                   name="titre"
+                  placeholder="Entrez le titre"
                   value={annonceFormData.titre}
                   onChange={handleChange}
                   required
                 />
               </Form.Group>
-              <Form.Group controlId="formDescription">
+              <Form.Group className="mb-4" controlId="formDescription">
                 <Form.Label>Description</Form.Label>
                 <Form.Control
                   as="textarea"
+                  rows={4}
                   name="description"
+                  placeholder="Décrivez votre annonce"
                   value={annonceFormData.description}
                   onChange={handleChange}
                   required
                 />
               </Form.Group>
-              <Form.Group controlId="formImage">
-                <Form.Label>Image URL</Form.Label>
+              <Form.Group className="mb-4" controlId="formImage">
+                <Form.Label>Image</Form.Label>
                 <Form.Control
-                  type="text"
-                  name="image"
-                  value={annonceFormData.image}
-                  onChange={handleChange}
-                  required
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  required={!selectedAnnonce}
                 />
               </Form.Group>
-              <Form.Group controlId="formDateDebut">
+              <Form.Group className="mb-4" controlId="formDateDebut">
                 <Form.Label>Date de début</Form.Label>
                 <Form.Control
-                  type="date"
+                  type="datetime-local"
                   name="dateDebut"
                   value={annonceFormData.dateDebut}
                   onChange={handleChange}
                   required
                 />
               </Form.Group>
-              <Form.Group controlId="formDateExpiration">
+              <Form.Group className="mb-4" controlId="formDateExpiration">
                 <Form.Label>Date d'expiration</Form.Label>
                 <Form.Control
-                  type="date"
+                  type="datetime-local"
                   name="dateExpiration"
                   value={annonceFormData.dateExpiration}
                   onChange={handleChange}
                   required
                 />
               </Form.Group>
-              <Button variant="primary" type="submit">
-                Ajouter
-              </Button>
+              <FormActions>
+                <Button 
+                  variant="outline-secondary" 
+                  onClick={() => setShowAnnonceModal(false)}
+                >
+                  Annuler
+                </Button>
+                <Button variant="primary" type="submit">
+                  {selectedAnnonce ? 'Mettre à jour' : 'Créer l\'annonce'}
+                </Button>
+              </FormActions>
             </Form>
           </Modal.Body>
         </StyledModal>
-
-        <AnnonceCarousel annonces={annonces} autoplay={true} />      </Container>
+      </Container>
     </StyledDashboard>
   );
 };
