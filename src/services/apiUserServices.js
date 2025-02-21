@@ -65,10 +65,39 @@ const ApiService = {
 
     deleteUser: async (id) => {
         try {
-            const response = await api.delete(`/users/${id}`);
-            return response.data;
+            // Première étape : supprimer les demandes d'expert
+            try {
+                await api.delete(`/expert-requests/user/${id}`);
+                console.log('Expert requests cleaned successfully');
+            } catch (cleanupError) {
+                // Ignorer l'erreur si aucune demande d'expert n'existe
+                console.log('No expert requests to clean');
+            }
+
+            // Deuxième étape : supprimer l'utilisateur
+            const deleteResponse = await api.delete(`/users/${id}`);
+            console.log('User deleted successfully');
+            return deleteResponse.data;
         } catch (error) {
-            throw error.response.data;
+            if (error.response && error.response.status === 500) {
+                // Si l'erreur est 500 mais que la suppression a réussi
+                if (await checkUserDeleted(id)) {
+                    console.log('User was actually deleted successfully');
+                    return { success: true };
+                }
+            }
+            console.error('Error in deleteUser:', error);
+            throw new Error('Impossible de supprimer cet utilisateur');
+        }
+    },
+
+    // Fonction utilitaire pour vérifier si l'utilisateur existe encore
+    checkUserExists: async (id) => {
+        try {
+            await api.get(`/users/${id}`);
+            return true;
+        } catch (error) {
+            return false;
         }
     },
 
@@ -103,7 +132,7 @@ const ApiService = {
     getAllUsers: async () => {
         try {
             const response = await api.get('/users');
-            console.log('API Response:', response.data); // Pour déboguer
+            console.log('API Response:', response.data);
             return Array.isArray(response.data) ? response.data : [];
         } catch (error) {
             console.error('Get All Users Error:', error);
@@ -112,4 +141,15 @@ const ApiService = {
     },
 };
 
+// Fonction helper pour vérifier si l'utilisateur a été supprimé
+const checkUserDeleted = async (id) => {
+    try {
+        await api.get(`/users/${id}`);
+        return false; // L'utilisateur existe encore
+    } catch (error) {
+        return error.response && error.response.status === 404; // L'utilisateur n'existe plus
+    }
+};
+
 export default ApiService;
+
