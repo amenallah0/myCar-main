@@ -61,6 +61,7 @@ export default function ProfilePage() {
   const [carsPerPage] = useState(4); // Number of cars to display per page
   const [isDisconnected, setIsDisconnected] = useState(false); // State for disconnect functionality
   const [error, setError] = useState(null);
+  const [expertiseCount, setExpertiseCount] = useState(0);
 
   useEffect(() => {
     if (userId) {
@@ -90,6 +91,12 @@ export default function ProfilePage() {
       navigate('/signin');
     }
   }, [userId, navigate]);
+
+  useEffect(() => {
+    if (user?.id && user?.role === 'EXPERT') {
+      fetchExpertiseCount();
+    }
+  }, [user]);
 
   const fetchCarDetails = async (carId) => {
     try {
@@ -194,6 +201,20 @@ export default function ProfilePage() {
     navigate('/my-expertise-requests');
   };
 
+  const fetchExpertiseCount = async () => {
+    try {
+      const response = await fetch(`http://localhost:8081/api/expertise-requests/expert/${user.id}`);
+      if (!response.ok) {
+        throw new Error('Erreur lors du chargement des expertises');
+      }
+      const data = await response.json();
+      setExpertiseCount(data.length);
+    } catch (error) {
+      console.error('Error fetching expertise count:', error);
+      toast.error('Erreur lors du chargement du nombre d\'expertises');
+    }
+  };
+
   // Regroupement des champs par section pour une meilleure organisation
   const personalInfoFields = [
     { label: 'Prénom', field: 'firstName' },
@@ -244,18 +265,24 @@ export default function ProfilePage() {
                 <span className="stat-label">Véhicules</span>
               </div>
               <div className="stat-item">
-                <span className="stat-value">{user?.role === 'EXPERT' ? '12' : '0'}</span>
+                <span className="stat-value">{user?.role === 'EXPERT' ? expertiseCount : '0'}</span>
                 <span className="stat-label">Expertises</span>
               </div>
             </div>
           </div>
           <div className="profile-actions">
             {user?.role === 'EXPERT' ? (
-              <button className="view-requests-btn" onClick={handleViewExpertRequests}>
-                Mes demandes d'expertise
+              <button 
+                className="view-requests-btn" 
+                onClick={handleViewExpertRequests}
+              >
+                Mes demandes d'expertise ({expertiseCount})
               </button>
             ) : (
-              <button className="become-expert-btn" onClick={() => setShowModal(true)}>
+              <button 
+                className="become-expert-btn" 
+                onClick={() => setShowModal(true)}
+              >
                 Devenir expert
               </button>
             )}

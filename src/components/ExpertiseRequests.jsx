@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { 
   FaCar, FaUser, FaCalendarAlt, FaCheck, FaTimes, 
   FaSpinner, FaEnvelope, FaPhone, FaMapMarkerAlt,
-  FaTools, FaClipboardList, FaSync
+  FaTools, FaClipboardList, FaSync, FaArrowUp
 } from 'react-icons/fa';
 import moment from 'moment';
 import HeaderFive from './HeaderFive';
@@ -15,13 +15,29 @@ moment.locale('fr');
 const ExpertiseRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const { user } = useUser();
 
   useEffect(() => {
     if (user?.id) {
       fetchRequests();
     }
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, [user]);
+
+  const handleScroll = () => {
+    setShowScrollTop(window.pageYOffset > 300);
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
 
   const fetchRequests = async () => {
     try {
@@ -75,15 +91,33 @@ const ExpertiseRequests = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      PENDING: { bg: 'warning', icon: <FaSpinner className="me-1" />, text: 'En attente' },
-      ACCEPTED: { bg: 'success', icon: <FaCheck className="me-1" />, text: 'Acceptée' },
-      REJECTED: { bg: 'danger', icon: <FaTimes className="me-1" />, text: 'Refusée' }
+      PENDING: { 
+        bg: 'warning',
+        icon: <FaSpinner className="status-icon spinning" />, 
+        text: 'En attente',
+        className: 'status-badge-pending'
+      },
+      ACCEPTED: { 
+        bg: 'success',
+        icon: <FaCheck className="status-icon" />, 
+        text: 'Acceptée',
+        className: 'status-badge-accepted'
+      },
+      REJECTED: { 
+        bg: 'danger',
+        icon: <FaTimes className="status-icon" />, 
+        text: 'Refusée',
+        className: 'status-badge-rejected'
+      }
     };
+
     const config = statusConfig[status] || statusConfig.PENDING;
+    
     return (
-      <Badge bg={config.bg} className="status-badge">
-        {config.icon} {config.text}
-      </Badge>
+      <div className={`status-badge ${config.className}`}>
+        {config.icon}
+        <span>{config.text}</span>
+      </div>
     );
   };
 
@@ -154,93 +188,101 @@ const ExpertiseRequests = () => {
               <p className="mb-0">Vous n'avez pas de nouvelles demandes d'expertise à traiter.</p>
             </Alert>
           ) : (
-            <Row>
+            <div className="requests-container">
               {requests.map((request) => (
-                <Col key={request.id} md={6} lg={4} className="mb-4">
-                  <Card className="request-card h-100">
-                    <Card.Header className="d-flex justify-content-between align-items-center">
-                      <div className="car-info">
-                        <h5 className="mb-0 car-title">
-                          {request.car?.make} {request.car?.model}
-                        </h5>
-                        <small className="text-muted">
-                          {request.car?.year} - {request.car?.mileage} km
-                        </small>
-                      </div>
-                      {getStatusBadge(request.status)}
-                    </Card.Header>
-                    <Card.Body>
-                      <div className="client-info mb-3">
-                        <div className="user-profile d-flex align-items-center mb-3">
-                          <div className="user-avatar me-3">
-                            {request.user?.profileImage ? (
-                              <Image src={request.user.profileImage} roundedCircle />
-                            ) : (
-                              <div className="avatar-placeholder">
-                                {request.user?.firstName?.[0]}{request.user?.lastName?.[0]}
-                              </div>
-                            )}
-                          </div>
-                          <div className="user-details">
-                            <h6 className="mb-1">
-                              {request.user?.firstName} {request.user?.lastName}
-                            </h6>
-                            <div className="user-contact">
-                              <small className="text-muted d-flex align-items-center mb-1">
-                                <FaEnvelope className="me-2" /> {request.user?.email}
-                              </small>
-                              {request.user?.phone && (
-                                <small className="text-muted d-flex align-items-center">
-                                  <FaPhone className="me-2" /> {request.user?.phone}
-                                </small>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="request-details p-3 bg-light rounded">
-                          <div className="d-flex align-items-center mb-2">
-                            <FaCalendarAlt className="me-2 text-primary" />
-                            <small>
-                              Demande reçue le {moment(request.requestDate).format('DD MMMM YYYY à HH:mm')}
-                            </small>
-                          </div>
-                          {request.user?.address && (
-                            <div className="d-flex align-items-center">
-                              <FaMapMarkerAlt className="me-2 text-primary" />
-                              <small>{request.user.address}</small>
+                <Card key={request.id} className="request-card mb-4">
+                  <Card.Header className="d-flex justify-content-between align-items-center">
+                    <div className="car-info">
+                      <h5 className="mb-0 car-title">
+                        {request.car?.make} {request.car?.model}
+                      </h5>
+                      <small className="text-muted">
+                        {request.car?.year} - {request.car?.mileage} km
+                      </small>
+                    </div>
+                    {getStatusBadge(request.status)}
+                  </Card.Header>
+                  <Card.Body>
+                    <div className="client-info mb-3">
+                      <div className="user-profile d-flex align-items-center mb-3">
+                        <div className="user-avatar me-3">
+                          {request.user?.profileImage ? (
+                            <Image src={request.user.profileImage} roundedCircle />
+                          ) : (
+                            <div className="avatar-placeholder">
+                              {request.user?.firstName?.[0]}{request.user?.lastName?.[0]}
                             </div>
                           )}
                         </div>
-                      </div>
-                      <div className="message-section">
-                        <h6 className="mb-2">Message du client</h6>
-                        <div className="message-content">
-                          {request.message}
+                        <div className="user-details">
+                          <h6 className="mb-1">
+                            {request.user?.firstName} {request.user?.lastName}
+                          </h6>
+                          <div className="user-contact">
+                            <small className="text-muted d-flex align-items-center mb-1">
+                              <FaEnvelope className="me-2" /> {request.user?.email}
+                            </small>
+                            {request.user?.phone && (
+                              <small className="text-muted d-flex align-items-center">
+                                <FaPhone className="me-2" /> {request.user?.phone}
+                              </small>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      {request.status === 'PENDING' && (
-                        <div className="action-buttons d-flex gap-2 mt-4">
-                          <Button 
-                            variant="success" 
-                            className="flex-grow-1 d-flex align-items-center justify-content-center"
-                            onClick={() => handleAccept(request.id)}
-                          >
-                            <FaCheck className="me-2" /> Accepter
-                          </Button>
-                          <Button 
-                            variant="danger"
-                            className="flex-grow-1 d-flex align-items-center justify-content-center"
-                            onClick={() => handleReject(request.id)}
-                          >
-                            <FaTimes className="me-2" /> Refuser
-                          </Button>
+                      <div className="request-details p-3 bg-light rounded">
+                        <div className="d-flex align-items-center mb-2">
+                          <FaCalendarAlt className="me-2 text-primary" />
+                          <small>
+                            Demande reçue le {moment(request.requestDate).format('DD MMMM YYYY à HH:mm')}
+                          </small>
                         </div>
-                      )}
-                    </Card.Body>
-                  </Card>
-                </Col>
+                        {request.user?.address && (
+                          <div className="d-flex align-items-center">
+                            <FaMapMarkerAlt className="me-2 text-primary" />
+                            <small>{request.user.address}</small>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="message-section">
+                      <h6 className="mb-2">Message du client</h6>
+                      <div className="message-content">
+                        {request.message}
+                      </div>
+                    </div>
+                    {request.status === 'PENDING' && (
+                      <div className="action-buttons d-flex gap-2 mt-4">
+                        <Button 
+                          variant="success" 
+                          className="flex-grow-1 d-flex align-items-center justify-content-center"
+                          onClick={() => handleAccept(request.id)}
+                        >
+                          <FaCheck className="me-2" /> Accepter
+                        </Button>
+                        <Button 
+                          variant="danger"
+                          className="flex-grow-1 d-flex align-items-center justify-content-center"
+                          onClick={() => handleReject(request.id)}
+                        >
+                          <FaTimes className="me-2" /> Refuser
+                        </Button>
+                      </div>
+                    )}
+                  </Card.Body>
+                </Card>
               ))}
-            </Row>
+            </div>
+          )}
+
+          {showScrollTop && (
+            <button 
+              className="scroll-to-top"
+              onClick={scrollToTop}
+              aria-label="Retour en haut"
+            >
+              <FaArrowUp />
+            </button>
           )}
 
           <style jsx>{`
@@ -248,6 +290,7 @@ const ExpertiseRequests = () => {
               background-color: #f8f9fa;
               min-height: calc(100vh - 80px);
               padding-top: 2rem;
+              position: relative;
             }
 
             .dashboard-header {
@@ -362,9 +405,42 @@ const ExpertiseRequests = () => {
             .status-badge {
               display: flex;
               align-items: center;
-              padding: 0.6em 1em;
-              font-size: 0.8rem;
+              gap: 8px;
+              padding: 8px 16px;
               border-radius: 20px;
+              font-weight: 500;
+              font-size: 0.9rem;
+            }
+
+            .status-badge-pending {
+              background-color: #fff3cd;
+              color: #856404;
+              border: 1px solid #ffeeba;
+            }
+
+            .status-badge-accepted {
+              background-color: #d4edda;
+              color: #155724;
+              border: 1px solid #c3e6cb;
+            }
+
+            .status-badge-rejected {
+              background-color: #f8d7da;
+              color: #721c24;
+              border: 1px solid #f5c6cb;
+            }
+
+            .status-icon {
+              font-size: 1rem;
+            }
+
+            .spinning {
+              animation: spin 1s linear infinite;
+            }
+
+            @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
             }
 
             .user-avatar {
@@ -393,7 +469,7 @@ const ExpertiseRequests = () => {
               background-color: #f8f9fa;
               padding: 1rem;
               border-radius: 8px;
-              font-size: 0.9rem;
+              font-size: 0.95rem;
               line-height: 1.5;
             }
 
@@ -411,9 +487,59 @@ const ExpertiseRequests = () => {
               font-size: 2rem;
             }
 
-            @keyframes spin {
-              from { transform: rotate(0deg); }
-              to { transform: rotate(360deg); }
+            .requests-container {
+              max-height: calc(100vh - 200px);
+              overflow-y: auto;
+              padding-right: 10px;
+              scrollbar-width: thin;
+              scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+            }
+
+            .requests-container::-webkit-scrollbar {
+              width: 6px;
+            }
+
+            .requests-container::-webkit-scrollbar-track {
+              background: transparent;
+            }
+
+            .requests-container::-webkit-scrollbar-thumb {
+              background-color: rgba(0, 0, 0, 0.2);
+              border-radius: 3px;
+            }
+
+            .requests-container::-webkit-scrollbar-thumb:hover {
+              background-color: rgba(0, 0, 0, 0.3);
+            }
+
+            .scroll-to-top {
+              position: fixed;
+              bottom: 30px;
+              right: 30px;
+              width: 45px;
+              height: 45px;
+              background-color: var(--bs-primary);
+              color: white;
+              border: none;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              opacity: 0.8;
+              z-index: 1000;
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            }
+
+            .scroll-to-top:hover {
+              opacity: 1;
+              transform: translateY(-3px);
+              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            .scroll-to-top:active {
+              transform: translateY(0);
             }
 
             @media (max-width: 768px) {
@@ -429,6 +555,17 @@ const ExpertiseRequests = () => {
               .refresh-button {
                 width: 100%;
                 justify-content: center;
+              }
+
+              .requests-container {
+                max-height: calc(100vh - 150px);
+              }
+
+              .scroll-to-top {
+                bottom: 20px;
+                right: 20px;
+                width: 40px;
+                height: 40px;
               }
             }
           `}</style>
