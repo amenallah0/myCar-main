@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Spinner from "react-bootstrap/Spinner";
 import { motion } from "framer-motion";
 import { FaShoppingCart, FaPhoneAlt, FaRegHeart, FaShare } from 'react-icons/fa';
+import ExpertContactForm from './ExpertContactForm';
 
 const ShopDetails = () => {
   const { id } = useParams();
@@ -15,6 +16,7 @@ const ShopDetails = () => {
   const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('features');
+  const [showExpertForm, setShowExpertForm] = useState(false);
 
   useEffect(() => {
     const fetchCarDetails = async () => {
@@ -283,6 +285,7 @@ const ShopDetails = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="btn-contact"
+                  onClick={() => setShowExpertForm(true)}
                 >
                   <FaPhoneAlt /> Contact Expert
                 </motion.button>
@@ -824,6 +827,12 @@ const ShopDetails = () => {
       `}</style>
 
       <ToastContainer />
+
+      <ExpertContactForm 
+        show={showExpertForm}
+        handleClose={() => setShowExpertForm(false)}
+        carId={car.id}
+      />
     </motion.section>
   );
 };
