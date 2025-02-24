@@ -60,6 +60,7 @@ export default function ProfilePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [carsPerPage] = useState(4); // Number of cars to display per page
   const [isDisconnected, setIsDisconnected] = useState(false); // State for disconnect functionality
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (userId) {
@@ -70,11 +71,12 @@ export default function ProfilePage() {
             setUser(userData);
             setEditedUser(userData);
           } else {
-            // Handle case where user data is not found
+            setError('User data not found');
             toast.error('User data not found');
             navigate('/');
           }
         } catch (error) {
+          setError(error.message);
           console.error('Error fetching user data:', error);
           toast.error('Error loading user profile');
           navigate('/');
@@ -83,7 +85,7 @@ export default function ProfilePage() {
 
       fetchUserData();
     } else {
-      // If no userId is present in context, redirect to login
+      setError('No user ID found');
       toast.error('Please login to view profile');
       navigate('/signin');
     }
@@ -173,7 +175,7 @@ export default function ProfilePage() {
   // Pagination
   const indexOfLastCar = currentPage * carsPerPage;
   const indexOfFirstCar = indexOfLastCar - carsPerPage;
-  const currentCars = user?.cars.slice(indexOfFirstCar, indexOfLastCar);
+  const currentCars = user?.cars ? user.cars.slice(indexOfFirstCar, indexOfLastCar) : [];
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -186,6 +188,10 @@ export default function ProfilePage() {
       // Ouvrir le modal pour devenir expert
       setShowModal(true);
     }
+  };
+
+  const handleViewExpertRequests = () => {
+    navigate('/my-expertise-requests');
   };
 
   // Regroupement des champs par section pour une meilleure organisation
@@ -207,6 +213,10 @@ export default function ProfilePage() {
   const additionalInfoFields = [
     { label: 'Bio', field: 'bio', type: 'textarea' },
   ];
+
+  if (error) {
+    return <div className="error-container">Error: {error}</div>;
+  }
 
   if (!user) {
     return <div>Loading...</div>;
@@ -238,7 +248,13 @@ export default function ProfilePage() {
                 <span className="stat-label">Expertises</span>
               </div>
             </div>
-            {user?.role !== 'EXPERT' && (
+          </div>
+          <div className="profile-actions">
+            {user?.role === 'EXPERT' ? (
+              <button className="view-requests-btn" onClick={handleViewExpertRequests}>
+                Mes demandes d'expertise
+              </button>
+            ) : (
               <button className="become-expert-btn" onClick={() => setShowModal(true)}>
                 Devenir expert
               </button>
@@ -296,19 +312,23 @@ export default function ProfilePage() {
           </div>
           <div className="vehicles-grid">
             {currentCars?.map((car) => (
-              <div key={car.id} className="vehicle-card">
+              <div key={car?.id || 'no-id'} className="vehicle-card">
                 <div className="vehicle-image">
-                  {car.images?.[0]?.filename ? (
+                  {car?.images && car.images[0]?.filename ? (
                     <img 
                       src={`http://localhost:8081/api/files/download/${car.images[0].filename}`}
-                      alt={car.model}
+                      alt={car?.model || 'Car'}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = 'fallback-image-url';
+                      }}
                     />
                   ) : (
                     <div className="no-image">Pas d'image</div>
                   )}
                 </div>
                 <div className="vehicle-info">
-                  <h3>{car.make} {car.model}</h3>
+                  <h3>{car?.make} {car?.model}</h3>
                   <div className="vehicle-actions">
                     <button onClick={() => fetchCarDetails(car.id)}>Détails</button>
                     <button onClick={() => handleDeleteCar(car.id)} className="delete-btn">
@@ -342,9 +362,8 @@ export default function ProfilePage() {
           margin: 0 auto;
           display: flex;
           align-items: center;
+          justify-content: space-between;
           gap: 40px;
-          
-          
         }
 
         .profile-avatar-wrapper {
@@ -586,19 +605,39 @@ export default function ProfilePage() {
           backdrop-filter: blur(5px);
         }
 
+        .profile-actions {
+          margin-left: auto;
+          display: flex;
+          gap: 15px;
+        }
+
+        .view-requests-btn {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          border: 2px solid white;
+          padding: 8px 20px;
+          border-radius: 20px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+        }
+
+        .view-requests-btn:hover {
+          background: rgba(255, 255, 255, 0.3);
+          transform: translateY(-1px);
+        }
+
         @media (max-width: 768px) {
           .profile-header {
             flex-direction: column;
             text-align: center;
-            gap: 20px;
           }
 
-          .profile-stats {
+          .profile-actions {
+            margin-left: 0;
             justify-content: center;
-          }
-
-          .info-grid {
-            grid-template-columns: 1fr;
+            width: 100%;
           }
         }
       `}</style>

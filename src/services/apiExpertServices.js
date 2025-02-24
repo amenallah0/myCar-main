@@ -13,11 +13,14 @@ const api = axios.create({
 const ApiExpertService = {
   getAllExperts: async () => {
     try {
-      const response = await api.get('/users/experts');  // Nouvelle route pour obtenir les utilisateurs experts
-      return response.data;
+      const response = await fetch(`${API_URL}/users/experts`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch experts');
+      }
+      return await response.json();
     } catch (error) {
       console.error('Error fetching experts:', error);
-      throw error.response ? error.response.data : error;
+      throw error;
     }
   },
 

@@ -24,6 +24,7 @@ import Profile from './pages/ProfilePage';
 import AddCarPage from "./pages/AddCarPage";
 import { UserProvider } from './contexts/userContext';
 import AdminDashboard from './components/admin/AdminDashboard';
+import ExpertiseRequests from './components/ExpertiseRequests';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
@@ -54,6 +55,7 @@ function App() {
           <Route path="/profile/:username" element={<Profile />} />
           <Route path="/AddCar" element={<AddCarPage />} />
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/my-expertise-requests" element={<ExpertiseRequests />} />
         </Routes>
       </BrowserRouter>
     </UserProvider>
