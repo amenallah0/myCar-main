@@ -1,12 +1,171 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Form, Button, Card } from 'react-bootstrap';
-import { useParams } from 'react-router-dom';
+import { Container, Form, Button, Card, Row, Col, Alert } from 'react-bootstrap';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/userContext';
 import { toast } from 'react-toastify';
 import HeaderFive from './HeaderFive';
-import { FaCar, FaFileAlt, FaUser, FaCalendarAlt } from 'react-icons/fa';
+import { 
+  FaCar, FaFileAlt, FaUser, FaCalendarAlt, 
+  FaClipboardList, FaTools, FaTachometerAlt,
+  FaCog, FaCheckCircle, FaCloudUploadAlt
+} from 'react-icons/fa';
+import apiExpertiseService from '../services/apiExpertiseService';
+import styled from 'styled-components';
+
+const StyledContainer = styled(Container)`
+  max-width: 1200px;
+  margin: 2rem auto;
+`;
+
+const StyledCard = styled(Card)`
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  border: none;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+`;
+
+const StyledHeader = styled(Card.Header)`
+  background: linear-gradient(145deg, #1a1a1a 0%, #2c2c2c 100%);
+  color: #fff;
+  border-radius: 15px 15px 0 0;
+  padding: 25px;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  svg {
+    font-size: 1.8rem;
+  }
+`;
+
+const StyledBody = styled(Card.Body)`
+  padding: 35px;
+  background: #fff;
+`;
+
+const StyledButton = styled(Button)`
+  background: linear-gradient(145deg, #dc3545 0%, #c82333 100%);
+  border: none;
+  padding: 12px 30px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+    background: linear-gradient(145deg, #c82333 0%, #bd2130 100%);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+const StyledForm = styled(Form)`
+  .form-label {
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.8rem;
+    font-size: 1rem;
+  }
+
+  .form-control {
+    border-radius: 10px;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+    
+    &:focus {
+      border-color: #dc3545;
+      box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+      background-color: #fff;
+    }
+
+    &:hover {
+      border-color: #dc3545;
+    }
+  }
+
+  textarea.form-control {
+    min-height: 120px;
+  }
+`;
+
+const SectionTitle = styled.h4`
+  color: #1a1a1a;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 2px solid #dc3545;
+  display: inline-block;
+`;
+
+const InfoCard = styled.div`
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 2rem;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+`;
+
+const LoadingSpinner = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  color: #dc3545;
+`;
+
+const FileUploadSection = styled.div`
+  margin-bottom: 2rem;
+  padding: 2rem;
+  border: 2px dashed #dc3545;
+  border-radius: 10px;
+  text-align: center;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: rgba(220, 53, 69, 0.05);
+  }
+
+  input[type="file"] {
+    display: none;
+  }
+
+  .upload-icon {
+    font-size: 2rem;
+    color: #dc3545;
+    margin-bottom: 1rem;
+  }
+
+  .file-name {
+    margin-top: 1rem;
+    font-weight: 500;
+  }
+`;
 
 const ExpertReport = () => {
+  const navigate = useNavigate();
   const { requestId } = useParams();
   const { user } = useUser();
   const [carDetails, setCarDetails] = useState(null);
@@ -16,10 +175,11 @@ const ExpertReport = () => {
     criticalData: '',
     expertiseDate: new Date().toISOString().split('T')[0],
     message: '',
-    expertName: user?.firstName + ' ' + user?.lastName || '',
+    expertName: '',
     expertEmail: user?.email || '',
-    expertPhone: user?.phone || ''
+    expertPhone: ''
   });
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     fetchRequestDetails();
@@ -27,9 +187,7 @@ const ExpertReport = () => {
 
   const fetchRequestDetails = async () => {
     try {
-      const response = await fetch(`http://localhost:8081/api/expertise-requests/${requestId}`);
-      if (!response.ok) throw new Error('Failed to fetch request details');
-      const data = await response.json();
+      const data = await apiExpertiseService.getExpertiseRequest(requestId);
       setCarDetails(data.car);
       setLoading(false);
     } catch (error) {
@@ -38,30 +196,59 @@ const ExpertReport = () => {
     }
   };
 
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:8081/api/expert-reports`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          requestId,
-          carId: carDetails?.id,
-          expertId: user?.id
-        }),
+      const formDataToSend = new FormData();
+      
+      // Assurez-vous que la date est au format YYYY-MM-DD
+      const date = new Date(formData.expertiseDate);
+      const formattedDate = date.toISOString().split('T')[0];
+      
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('criticalData', formData.criticalData);
+      formDataToSend.append('expertiseDate', formattedDate);
+      formDataToSend.append('message', formData.message);
+      formDataToSend.append('expertName', formData.expertName);
+      formDataToSend.append('expertEmail', formData.expertEmail);
+      formDataToSend.append('expertPhone', formData.expertPhone);
+      
+      if (selectedFile) {
+        formDataToSend.append('file', selectedFile);
+      }
+
+      await apiExpertiseService.submitReport(requestId, formDataToSend);
+      
+      // Afficher le toast de succès
+      toast.success("Rapport d'expertise soumis avec succès!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
       });
 
-      if (!response.ok) throw new Error('Failed to submit report');
+      // Rediriger vers le profil de l'expert avec son username
+      navigate(`/profile/${user.username}`);
       
-      toast.success("Rapport d'expertise envoyé avec succès");
-      // Redirection vers la liste des demandes
-      window.location.href = '/my-expertise-requests';
     } catch (error) {
-      toast.error("Erreur lors de l'envoi du rapport");
-      console.error(error);
+      toast.error("Erreur lors de la soumission du rapport: " + (error.response?.data?.message || "Veuillez réessayer"), {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true
+      });
+      console.error('Detailed error:', error.response?.data);
     }
   };
 
@@ -73,117 +260,39 @@ const ExpertReport = () => {
     }));
   };
 
-  if (loading) return <div>Chargement...</div>;
-
   return (
-    <>
-      <HeaderFive />
-      <Container className="py-5">
-        <div className="report-container">
-          <h2 className="mb-4">
-            <FaFileAlt className="me-2" />
-            Rapport d'Expertise
-          </h2>
-
-          {carDetails && (
-            <Card className="car-details mb-4">
-              <Card.Header>
-                <h3 className="mb-0">
-                  <FaCar className="me-2" />
-                  Détails du Véhicule
-                </h3>
-              </Card.Header>
-              <Card.Body>
-                <div className="car-info-grid">
-                  <div className="info-item">
-                    <span className="label">Marque:</span>
-                    <span className="value">{carDetails.make}</span>
-                  </div>
-                  <div className="info-item">
-                    <span className="label">Modèle:</span>
-                    <span className="value">{carDetails.model}</span>
-                  </div>
-                  <div className="info-item">
-                    <span className="label">Année:</span>
-                    <span className="value">{carDetails.year}</span>
-                  </div>
-                  <div className="info-item">
-                    <span className="label">Kilométrage:</span>
-                    <span className="value">{carDetails.mileage} km</span>
-                  </div>
-                </div>
-              </Card.Body>
-            </Card>
-          )}
-
-          <Form onSubmit={handleSubmit} className="report-form">
-            <Card>
-              <Card.Header>
-                <h3 className="mb-0">
-                  <FaFileAlt className="me-2" />
-                  Formulaire d'Expertise
-                </h3>
-              </Card.Header>
-              <Card.Body>
-                <Form.Group className="mb-3">
-                  <Form.Label>Titre de l'expertise</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    required
-                    placeholder="Ex: Expertise technique complète BMW Serie 3"
-                  />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Données critiques du véhicule</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    name="criticalData"
-                    value={formData.criticalData}
-                    onChange={handleChange}
-                    required
-                    rows={4}
-                    placeholder="État de la carrosserie, moteur, transmission, etc."
-                  />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    <FaCalendarAlt className="me-2" />
-                    Date de l'expertise
-                  </Form.Label>
-                  <Form.Control
-                    type="date"
-                    name="expertiseDate"
-                    value={formData.expertiseDate}
-                    onChange={handleChange}
-                    required
-                  />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Message détaillé</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    rows={6}
-                    placeholder="Détails complets de l'expertise..."
-                  />
-                </Form.Group>
-
-                <div className="expert-info-section">
-                  <h4 className="mb-3">
-                    <FaUser className="me-2" />
-                    Informations de l'expert
-                  </h4>
-                  <div className="expert-info-grid">
-                    <Form.Group>
+    <StyledContainer>
+      {loading ? (
+        <LoadingSpinner>
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Chargement...</span>
+          </div>
+        </LoadingSpinner>
+      ) : (
+        <StyledCard>
+          <StyledHeader>
+            <FaFileAlt />
+            Rapport d'Expertise Automobile
+          </StyledHeader>
+          <StyledBody>
+            {carDetails && (
+              <InfoCard>
+                <Row>
+                  <Col md={6}>
+                    <SectionTitle>
+                      <FaCar className="me-2" />
+                      Détails du Véhicule
+                    </SectionTitle>
+                    <p><strong>Marque:</strong> {carDetails.make}</p>
+                    <p><strong>Modèle:</strong> {carDetails.model}</p>
+                    <p><strong>Année:</strong> {carDetails.year}</p>
+                  </Col>
+                  <Col md={6}>
+                    <SectionTitle>
+                      <FaUser className="me-2" />
+                      Coordonnées de l'Expert
+                    </SectionTitle>
+                    <Form.Group className="mb-3">
                       <Form.Label>Nom complet</Form.Label>
                       <Form.Control
                         type="text"
@@ -191,21 +300,19 @@ const ExpertReport = () => {
                         value={formData.expertName}
                         onChange={handleChange}
                         required
+                        placeholder="Entrez votre nom complet"
                       />
                     </Form.Group>
-
-                    <Form.Group>
+                    <Form.Group className="mb-3">
                       <Form.Label>Email</Form.Label>
                       <Form.Control
                         type="email"
-                        name="expertEmail"
                         value={formData.expertEmail}
-                        onChange={handleChange}
-                        required
+                        disabled
+                        readOnly
                       />
                     </Form.Group>
-
-                    <Form.Group>
+                    <Form.Group className="mb-3">
                       <Form.Label>Téléphone</Form.Label>
                       <Form.Control
                         type="tel"
@@ -213,99 +320,122 @@ const ExpertReport = () => {
                         value={formData.expertPhone}
                         onChange={handleChange}
                         required
+                        placeholder="Entrez votre numéro de téléphone"
+                        pattern="[0-9]{8}"
+                        maxLength="8"
                       />
                     </Form.Group>
-                  </div>
-                </div>
-              </Card.Body>
-              <Card.Footer>
-                <Button type="submit" variant="primary" className="submit-button">
-                  <FaFileAlt className="me-2" />
-                  Soumettre le rapport
-                </Button>
-              </Card.Footer>
-            </Card>
-          </Form>
-        </div>
+                  </Col>
+                </Row>
+              </InfoCard>
+            )}
 
-        <style jsx>{`
-          .report-container {
-            max-width: 900px;
-            margin: 0 auto;
-          }
+            <StyledForm onSubmit={handleSubmit}>
+              <Row>
+                <Col md={12}>
+                  <Form.Group className="mb-4">
+                    <Form.Label>
+                      <FaFileAlt className="me-2" />
+                      Titre du Rapport
+                    </Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleChange}
+                      required
+                      placeholder="Titre du rapport d'expertise"
+                    />
+                  </Form.Group>
+                </Col>
 
-          .car-details {
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-          }
+                <Col md={12}>
+                  <Form.Group className="mb-4">
+                    <Form.Label>
+                      <FaClipboardList className="me-2" />
+                      Données Critiques
+                    </Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={4}
+                      name="criticalData"
+                      value={formData.criticalData}
+                      onChange={handleChange}
+                      required
+                      placeholder="Données critiques du véhicule..."
+                    />
+                  </Form.Group>
+                </Col>
 
-          .car-info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-          }
+                <Col md={6}>
+                  <Form.Group className="mb-4">
+                    <Form.Label>
+                      <FaCalendarAlt className="me-2" />
+                      Date d'Expertise
+                    </Form.Label>
+                    <Form.Control
+                      type="date"
+                      name="expertiseDate"
+                      value={formData.expertiseDate}
+                      onChange={handleChange}
+                      required
+                    />
+                  </Form.Group>
+                </Col>
 
-          .info-item {
-            display: flex;
-            flex-direction: column;
-          }
+                <Col md={12}>
+                  <Form.Group className="mb-4">
+                    <Form.Label>
+                      <FaFileAlt className="me-2" />
+                      Message Détaillé
+                    </Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={6}
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      required
+                      placeholder="Message détaillé de l'expertise..."
+                    />
+                  </Form.Group>
+                </Col>
 
-          .label {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 0.3rem;
-          }
+                <Col md={12}>
+                  <Form.Group className="mb-4">
+                    <FileUploadSection>
+                      <label htmlFor="file-upload">
+                        <FaCloudUploadAlt className="upload-icon" />
+                        <div>Cliquez ou glissez un fichier ici</div>
+                        <div className="text-muted">(PDF ou Image)</div>
+                        {selectedFile && (
+                          <div className="file-name">
+                            Fichier sélectionné: {selectedFile.name}
+                          </div>
+                        )}
+                      </label>
+                      <input
+                        id="file-upload"
+                        type="file"
+                        accept=".pdf,image/*"
+                        onChange={handleFileChange}
+                      />
+                    </FileUploadSection>
+                  </Form.Group>
+                </Col>
+              </Row>
 
-          .value {
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: #2c3e50;
-          }
-
-          .report-form {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-          }
-
-          .expert-info-section {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-top: 1.5rem;
-          }
-
-          .expert-info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-          }
-
-          .submit-button {
-            padding: 0.8rem 2rem;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-          }
-
-          .submit-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-          }
-
-          @media (max-width: 768px) {
-            .car-info-grid,
-            .expert-info-grid {
-              grid-template-columns: 1fr;
-            }
-          }
-        `}</style>
-      </Container>
-    </>
+              <div className="text-end mt-4">
+                <StyledButton type="submit">
+                  <FaCheckCircle className="me-2" />
+                  Soumettre le Rapport
+                </StyledButton>
+              </div>
+            </StyledForm>
+          </StyledBody>
+        </StyledCard>
+      )}
+    </StyledContainer>
   );
 };
 
