@@ -43,7 +43,11 @@ const HomePageSix = () => {
       {/* Header Five */}
       <HeaderFive />
 
-      <AnnonceCarousel annonces={annonces} />
+      <AnnonceCarousel 
+        annonces={annonces}
+        autoplay={true}
+        interval={5000}
+      />
 
       {/* Hero Six */}
       <HeroSix />

@@ -5,11 +5,12 @@ import { toast } from 'react-toastify';
 import { 
   FaCar, FaUser, FaCalendarAlt, FaCheck, FaTimes, 
   FaSpinner, FaEnvelope, FaPhone, FaMapMarkerAlt,
-  FaTools, FaClipboardList, FaSync, FaArrowUp
+  FaTools, FaClipboardList, FaSync, FaArrowUp, FaFileAlt
 } from 'react-icons/fa';
 import moment from 'moment';
 import HeaderFive from './HeaderFive';
 import 'moment/locale/fr';
+import { Link } from 'react-router-dom';
 moment.locale('fr');
 
 const ExpertiseRequests = () => {
@@ -251,24 +252,47 @@ const ExpertiseRequests = () => {
                         {request.message}
                       </div>
                     </div>
-                    {request.status === 'PENDING' && (
-                      <div className="action-buttons d-flex gap-2 mt-4">
+                    <div className="request-actions mt-3">
+                      <div className="action-buttons-group">
                         <Button 
-                          variant="success" 
-                          className="flex-grow-1 d-flex align-items-center justify-content-center"
+                          variant="outline-success" 
+                          className="action-button approve-button"
                           onClick={() => handleAccept(request.id)}
+                          disabled={request.status !== 'PENDING'}
                         >
-                          <FaCheck className="me-2" /> Accepter
+                          <FaCheck className="button-icon" />
+                          <span className="button-text">Approuver</span>
                         </Button>
+                        
                         <Button 
-                          variant="danger"
-                          className="flex-grow-1 d-flex align-items-center justify-content-center"
-                          onClick={() => handleReject(request.id)}
+                          variant="outline-danger"
+                          className="action-button reject-button"
+                          onClick={() => handleReject(request.id)} 
+                          disabled={request.status !== 'PENDING'}
                         >
-                          <FaTimes className="me-2" /> Refuser
+                          <FaTimes className="button-icon" />
+                          <span className="button-text">Refuser</span>
                         </Button>
+                        
+                        <Link 
+                          to={`/shop-details/${request.car?.id}`} 
+                          className="btn btn-outline-primary action-button view-button"
+                        >
+                          <FaCar className="button-icon" />
+                          <span className="button-text">Voir l'annonce</span>
+                        </Link>
+                        
+                        {request.status === 'ACCEPTED' && (
+                          <Link 
+                            to={`/expert-report/${request.id}`}
+                            className="btn btn-outline-info action-button report-button"
+                          >
+                            <FaFileAlt className="button-icon" />
+                            <span className="button-text">Rédiger le rapport</span>
+                          </Link>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </Card.Body>
                 </Card>
               ))}
@@ -477,69 +501,89 @@ const ExpertiseRequests = () => {
               background-color: rgba(var(--bs-primary-rgb), 0.05);
             }
 
-            .action-buttons button {
-              padding: 0.8rem;
-              font-weight: 500;
+            .request-actions {
+              margin-top: 1.5rem;
             }
 
-            .spinner-icon {
-              animation: spin 1s linear infinite;
-              font-size: 2rem;
+            .action-buttons-group {
+              display: flex;
+              gap: 12px;
+              flex-wrap: wrap;
             }
 
-            .requests-container {
-              max-height: calc(100vh - 200px);
-              overflow-y: auto;
-              padding-right: 10px;
-              scrollbar-width: thin;
-              scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
-            }
-
-            .requests-container::-webkit-scrollbar {
-              width: 6px;
-            }
-
-            .requests-container::-webkit-scrollbar-track {
-              background: transparent;
-            }
-
-            .requests-container::-webkit-scrollbar-thumb {
-              background-color: rgba(0, 0, 0, 0.2);
-              border-radius: 3px;
-            }
-
-            .requests-container::-webkit-scrollbar-thumb:hover {
-              background-color: rgba(0, 0, 0, 0.3);
-            }
-
-            .scroll-to-top {
-              position: fixed;
-              bottom: 30px;
-              right: 30px;
-              width: 45px;
-              height: 45px;
-              background-color: var(--bs-primary);
-              color: white;
-              border: none;
-              border-radius: 50%;
+            .action-button {
               display: flex;
               align-items: center;
               justify-content: center;
-              cursor: pointer;
+              gap: 8px;
+              padding: 10px 20px;
+              border-radius: 8px;
+              font-weight: 500;
               transition: all 0.3s ease;
-              opacity: 0.8;
-              z-index: 1000;
-              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+              min-width: 140px;
+              border-width: 2px;
             }
 
-            .scroll-to-top:hover {
-              opacity: 1;
-              transform: translateY(-3px);
-              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            .action-button:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             }
 
-            .scroll-to-top:active {
+            .action-button:active {
               transform: translateY(0);
+            }
+
+            .approve-button {
+              background-color: transparent;
+              border-color: #28a745;
+              color: #28a745;
+            }
+
+            .approve-button:hover:not(:disabled) {
+              background-color: #28a745;
+              color: white;
+            }
+
+            .reject-button {
+              background-color: transparent;
+              border-color: #dc3545;
+              color: #dc3545;
+            }
+
+            .reject-button:hover:not(:disabled) {
+              background-color: #dc3545;
+              color: white;
+            }
+
+            .view-button {
+              background-color: transparent;
+              border-color: #007bff;
+              color: #007bff;
+            }
+
+            .view-button:hover {
+              background-color: #007bff;
+              color: white;
+            }
+
+            .button-icon {
+              font-size: 1.1rem;
+              transition: transform 0.3s ease;
+            }
+
+            .action-button:hover .button-icon {
+              transform: scale(1.1);
+            }
+
+            .button-text {
+              font-size: 0.95rem;
+            }
+
+            .action-button:disabled {
+              opacity: 0.6;
+              cursor: not-allowed;
+              transform: none;
+              box-shadow: none;
             }
 
             @media (max-width: 768px) {
@@ -567,6 +611,77 @@ const ExpertiseRequests = () => {
                 width: 40px;
                 height: 40px;
               }
+
+              .action-buttons-group {
+                flex-direction: column;
+                width: 100%;
+              }
+
+              .action-button {
+                width: 100%;
+                justify-content: center;
+              }
+            }
+
+            /* Animation pour les boutons disabled */
+            .action-button:disabled::after {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+              background-size: 200% 100%;
+              animation: disabledShimmer 1.5s infinite;
+            }
+
+            @keyframes disabledShimmer {
+              0% {
+                background-position: 100% 0;
+              }
+              100% {
+                background-position: -100% 0;
+              }
+            }
+
+            /* Effet de ripple au clic */
+            .action-button {
+              position: relative;
+              overflow: hidden;
+            }
+
+            .action-button::after {
+              content: '';
+              position: absolute;
+              width: 100%;
+              height: 100%;
+              top: 0;
+              left: 0;
+              pointer-events: none;
+              background-image: radial-gradient(circle, rgba(255,255,255,0.3) 10%, transparent 10.01%);
+              background-repeat: no-repeat;
+              background-position: 50%;
+              transform: scale(10, 10);
+              opacity: 0;
+              transition: transform 0.5s, opacity 1s;
+            }
+
+            .action-button:active::after {
+              transform: scale(0, 0);
+              opacity: 0.3;
+              transition: 0s;
+            }
+
+            .report-button {
+              background-color: transparent;
+              border-color: #17a2b8;
+              color: #17a2b8;
+            }
+
+            .report-button:hover {
+              background-color: #17a2b8;
+              color: white;
             }
           `}</style>
         </Container>

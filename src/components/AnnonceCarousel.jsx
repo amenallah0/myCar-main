@@ -28,25 +28,30 @@ const AnnonceCarousel = ({ annonces, autoplay = true, interval = 5000 }) => {
     const intervalRef = useRef(null);
 
     useEffect(() => {
-        if (!annonces || annonces.length === 0 || !autoplay) return;
+        // Vérifier si l'autoplay est activé et si nous avons des annonces
+        if (!autoplay || !annonces || annonces.length === 0) return;
 
-        const startInterval = () => {
+        // Nettoyer l'intervalle précédent si nécessaire
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+        }
+
+        // Créer un nouvel intervalle seulement si l'autoplay est activé et non mis en pause
+        if (!isPaused) {
             intervalRef.current = setInterval(() => {
-                if (!isPaused) {
-                    const newIndex = (currentIndex + 1) % annonces.length;
-                    setCurrentIndex(newIndex);
-                }
+                setCurrentIndex((prevIndex) => 
+                    prevIndex === annonces.length - 1 ? 0 : prevIndex + 1
+                );
             }, interval);
-        };
+        }
 
-        startInterval();
-
+        // Nettoyage lors du démontage du composant
         return () => {
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
             }
         };
-    }, [currentIndex, isPaused, annonces, autoplay, interval]);
+    }, [autoplay, isPaused, annonces, interval]);
 
     if (!annonces || annonces.length === 0) {
         return <p style={{ textAlign: 'center', fontSize: '1.5em', color: '#888' }}>Aucune annonce disponible.</p>;

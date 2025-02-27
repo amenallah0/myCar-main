@@ -9,6 +9,7 @@ import Spinner from "react-bootstrap/Spinner";
 import { motion } from "framer-motion";
 import { FaShoppingCart, FaPhoneAlt, FaRegHeart, FaShare } from 'react-icons/fa';
 import ExpertContactForm from './ExpertContactForm';
+import PredictionService from "./../services/predictionService";
 
 const ShopDetails = () => {
   const { id } = useParams();
@@ -17,6 +18,8 @@ const ShopDetails = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState('features');
   const [showExpertForm, setShowExpertForm] = useState(false);
+  const [predictedPrice, setPredictedPrice] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchCarDetails = async () => {
@@ -33,6 +36,26 @@ const ShopDetails = () => {
 
     fetchCarDetails();
   }, [id]);
+
+  const getPrediction = async () => {
+    try {
+      const predictionData = {
+        make: car.make,
+        model: car.model,
+        year: parseInt(car.year),
+        mileage: parseFloat(car.mileage),
+        condition: car.condition || 'good',
+      };
+      
+      console.log('Sending prediction data:', predictionData);
+      
+      const price = await PredictionService.getPredictedPrice(predictionData);
+      setPredictedPrice(price);
+    } catch (error) {
+      console.error("Erreur lors de l'estimation:", error);
+      toast.error("Erreur lors de l'estimation du prix");
+    }
+  };
 
   if (loading) {
     return (
@@ -251,10 +274,29 @@ const ShopDetails = () => {
                 </div>
               </div>
 
-              <div className="price-section">
-                <div className="current-price">{car.price} TND</div>
-                {car.previousPrice && (
-                  <div className="previous-price">{car.previousPrice} TND</div>
+              <div className="product-price">
+                <span className="actual-price">{car.price} TND</span>
+                <button 
+                  className="estimate-button"
+                  onClick={getPrediction}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Estimation en cours...' : 'Estimer le prix du marché'}
+                </button>
+                {predictedPrice && (
+                  <div className="estimated-price-container">
+                    <div className="estimated-price-header">
+                      <span className="estimate-label">Prix estimé du marché</span>
+                      <div className="estimate-badge">IA</div>
+                    </div>
+                    <div className="estimated-price-value">
+                      {predictedPrice.toLocaleString()} TND
+                    </div>
+                    <div className="estimated-price-info">
+                      <i className="fas fa-info-circle"></i>
+                      <span>Basé sur l'analyse du marché actuel</span>
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -419,20 +461,91 @@ const ShopDetails = () => {
           margin-left: 10px;
         }
 
-        .price-section {
+        .product-price {
           margin-bottom: 30px;
         }
 
-        .current-price {
+        .actual-price {
           font-size: 2.5rem;
           font-weight: 700;
           color: #E8092E;
         }
 
-        .previous-price {
-          font-size: 1.2rem;
-          color: #999;
-          text-decoration: line-through;
+        .estimate-button {
+          display: block;
+          width: 100%;
+          margin-top: 15px;
+          padding: 12px 20px;
+          background: #2c3e50;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          font-size: 0.9rem;
+        }
+
+        .estimate-button:hover {
+          background: #34495e;
+          transform: translateY(-2px);
+        }
+
+        .estimate-button:disabled {
+          background: #95a5a6;
+          cursor: not-allowed;
+        }
+
+        .estimated-price-container {
+          margin-top: 20px;
+          padding: 20px;
+          background: linear-gradient(145deg, #f8f9fa, #ffffff);
+          border-radius: 12px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+          border: 1px solid #e9ecef;
+        }
+
+        .estimated-price-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+        }
+
+        .estimate-label {
+          font-size: 0.9rem;
+          color: #666;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .estimate-badge {
+          background: #E8092E;
+          color: white;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 0.8rem;
+          font-weight: bold;
+        }
+
+        .estimated-price-value {
+          font-size: 2rem;
+          font-weight: 700;
+          color: #28a745;
+          margin: 10px 0;
+        }
+
+        .estimated-price-info {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.85rem;
+          color: #666;
+          margin-top: 10px;
+        }
+
+        .estimated-price-info i {
+          color: #E8092E;
         }
 
         .key-features {
@@ -822,6 +935,15 @@ const ShopDetails = () => {
           .features-section h3 i {
             font-size: 1.3rem;
             padding: 8px;
+          }
+
+          .estimated-price-value {
+            font-size: 1.5rem;
+          }
+
+          .estimate-button {
+            padding: 10px 15px;
+            font-size: 0.85rem;
           }
         }
       `}</style>
