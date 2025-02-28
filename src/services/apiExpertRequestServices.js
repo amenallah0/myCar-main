@@ -2,6 +2,18 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:8081/api';
 
+
+const getUserRequests = async (userId) => {
+  try {
+    const response = await axios.get(`${API_URL}/expertise-requests/user/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user requests:', error);
+    throw error;
+  }
+};
+
+
 class ApiExpertRequestService {
   getAllRequests() {
     return axios.get(`${API_URL}/expert-requests`)
@@ -64,4 +76,7 @@ class ApiExpertRequestService {
   }
 }
 
-export default new ApiExpertRequestService(); 
+export default {
+  getUserRequests,
+  ...new ApiExpertRequestService()
+}; 

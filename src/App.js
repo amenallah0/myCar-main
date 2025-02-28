@@ -27,6 +27,8 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import ExpertiseRequests from './components/ExpertiseRequests';
 import ExpertReport from './components/ExpertReport';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import MySentRequests from './components/MySentRequests';
+
 
 function App() {
   return (
@@ -58,6 +60,8 @@ function App() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/my-expertise-requests" element={<ExpertiseRequests />} />
           <Route path="/expert-report/:requestId" element={<ExpertReport />} />
+          <Route path="/my-sent-requests" element={<MySentRequests />} />
+
         </Routes>
       </BrowserRouter>
     </UserProvider>

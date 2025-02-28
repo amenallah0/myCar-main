@@ -270,6 +270,7 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+          // Dans la section profile-actions, modifiez le code existant :
           <div className="profile-actions">
             {user?.role === 'EXPERT' ? (
               <button 
@@ -279,12 +280,20 @@ export default function ProfilePage() {
                 Mes demandes d'expertise ({expertiseCount})
               </button>
             ) : (
-              <button 
-                className="become-expert-btn" 
-                onClick={() => setShowModal(true)}
-              >
-                Devenir expert
-              </button>
+              <>
+                <button 
+                  className="view-requests-btn" 
+                  onClick={() => navigate('/my-sent-requests')}
+                >
+                  Mes demandes envoyées
+                </button>
+                <button 
+                  className="become-expert-btn" 
+                  onClick={() => setShowModal(true)}
+                >
+                  Devenir expert
+                </button>
+              </>
             )}
           </div>
         </div>
