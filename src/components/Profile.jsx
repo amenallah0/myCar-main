@@ -270,7 +270,6 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-          // Dans la section profile-actions, modifiez le code existant :
           <div className="profile-actions">
             {user?.role === 'EXPERT' ? (
               <button 

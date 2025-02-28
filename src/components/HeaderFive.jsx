@@ -198,6 +198,7 @@ const HeaderFive = () => {
           <li><NavLink to="/" className={({isActive}) => isActive ? "active" : ""}>Home</NavLink></li>
           <li><NavLink to="/about" className={({isActive}) => isActive ? "active" : ""}>About Us</NavLink></li>
           <li><NavLink to="/service" className={({isActive}) => isActive ? "active" : ""}>Service</NavLink></li>
+          <li><NavLink to="/AddCar" className={({isActive}) => isActive ? "active" : ""}>Add Car</NavLink></li>
           <li><NavLink to="/shop" className={({isActive}) => isActive ? "active" : ""}>Shop Page</NavLink></li>
           <li><NavLink to="/contact" className={({isActive}) => isActive ? "active" : ""}>Contact</NavLink></li>
         </ul>
