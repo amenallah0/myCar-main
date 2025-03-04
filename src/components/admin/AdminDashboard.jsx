@@ -1,7 +1,7 @@
 // src/components/admin/AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Container, Row, Col, Nav, Modal, Form, Button } from 'react-bootstrap';
+import { Container, Row, Col, Nav, Modal, Form, Button, Table, Card } from 'react-bootstrap';
 import AdminSidebar from './AdminSidebar';
 import AdminOverview from './AdminOverview';
 import AdminUsers from './AdminUsers';
@@ -16,12 +16,14 @@ import ApiService from '../../services/apiUserServices';
 import ApiExpertService from '../../services/apiExpertServices';
 import ApiExpertRequestService from '../../services/apiExpertRequestServices';
 import ApiAnnonceService from '../../services/apiAnnonceServices';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import AdminAnnonces from './AdminAnnonces';
 import { useUser } from '../../contexts/userContext';
 import { useNavigate } from 'react-router-dom';
 import AnnonceCarousel from '../AnnonceCarousel';
+import ApiNotificationService from '../../services/apiNotificationServices';
+import { motion } from 'framer-motion';
 
 // Styled Components
 const StyledDashboard = styled.div`
@@ -135,6 +137,60 @@ const FormActions = styled.div`
   margin-top: 2rem;
 `;
 
+const StyledTable = styled(Table)`
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  
+  th {
+    background-color: #3498db;
+    color: #fff;
+    text-align: center;
+  }
+
+  td {
+    text-align: center;
+  }
+
+  tr:hover {
+    background-color: #f1f1f1;
+  }
+`;
+
+const StyledCard = styled(Card)`
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+`;
+
+const NotificationCard = ({ notification }) => (
+  <StyledCard>
+    <Card.Body>
+      <Card.Title>{notification.message}</Card.Title>
+      <Card.Text>
+        {notification.createdAt ? new Date(notification.createdAt).toLocaleString() : 'N/A'}
+      </Card.Text>
+    </Card.Body>
+  </StyledCard>
+);
+
+const NotificationList = ({ notifications }) => (
+  <Row>
+    {notifications.map(notification => (
+      <Col md={4} key={notification.id}>
+        <NotificationCard notification={notification} />
+      </Col>
+    ))}
+  </Row>
+);
+
+const AnimatedCard = ({ children }) => (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+    {children}
+  </motion.div>
+);
+
 const AdminDashboard = () => {
   const { user } = useUser();
   const navigate = useNavigate();
@@ -174,6 +230,10 @@ const AdminDashboard = () => {
     dateDebut: '',
     dateExpiration: ''
   });
+
+  const [notifications, setNotifications] = useState([]);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
 
   useEffect(() => {
     if (!user || user.role !== 'ADMIN') {
@@ -503,8 +563,37 @@ const AdminDashboard = () => {
     await handleCreateAnnonce(annonceFormData);
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const response = await ApiNotificationService.getAllNotifications();
+      console.log('Notifications fetched:', response); // Ajoutez ce log pour vérifier la réponse
+      setNotifications(response);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const handleCreateNotification = async (e) => {
+    e.preventDefault();
+    try {
+      await ApiNotificationService.createNotification({ message: notificationMessage });
+      toast.success('Notification créée avec succès');
+      setNotificationMessage('');
+      setShowCreateForm(false);
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      toast.error('Erreur lors de la création de la notification');
+    }
+  };
+
   return (
     <StyledDashboard>
+      <ToastContainer />
       <Container fluid>
         <Row>
           <StyledSidebar md={2}>
@@ -564,6 +653,37 @@ const AdminDashboard = () => {
                   </div>
                 )}
               </>
+            )}
+            {activeTab === 'notifications' && (
+              <div>
+                <h2>Notifications</h2>
+                <Button 
+                  variant="primary" 
+                  onClick={() => setShowCreateForm(!showCreateForm)}
+                >
+                  {showCreateForm ? 'Annuler' : 'Ajouter une Notification'}
+                </Button>
+
+                {showCreateForm && (
+                  <Form onSubmit={handleCreateNotification} className="mt-3">
+                    <Form.Group controlId="formNotificationMessage">
+                      <Form.Label>Message de la Notification</Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="Entrez le message de la notification"
+                        value={notificationMessage}
+                        onChange={(e) => setNotificationMessage(e.target.value)}
+                        required
+                      />
+                    </Form.Group>
+                    <Button variant="primary" type="submit">
+                      Créer la Notification
+                    </Button>
+                  </Form>
+                )}
+
+                <NotificationList notifications={notifications} />
+              </div>
             )}
           </StyledContent>
         </Row>
