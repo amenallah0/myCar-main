@@ -1,7 +1,7 @@
 // src/components/admin/AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Container, Row, Col, Nav, Modal, Form, Button, Table, Card } from 'react-bootstrap';
+import { Container, Row, Col, Nav, Modal, Form, Button, Table, Card, ListGroup, Toast } from 'react-bootstrap';
 import AdminSidebar from './AdminSidebar';
 import AdminOverview from './AdminOverview';
 import AdminUsers from './AdminUsers';
@@ -24,6 +24,9 @@ import { useNavigate } from 'react-router-dom';
 import AnnonceCarousel from '../AnnonceCarousel';
 import ApiNotificationService from '../../services/apiNotificationServices';
 import { motion } from 'framer-motion';
+import { FaTrash } from 'react-icons/fa';
+import { FaBell } from 'react-icons/fa';
+import { formatDistanceToNow } from 'date-fns';
 
 // Styled Components
 const StyledDashboard = styled.div`
@@ -674,7 +677,7 @@ const AdminDashboard = () => {
             )}
             {activeTab === 'notifications' && (
               <div>
-                <h2>Notifications</h2>
+                <h2 style={{ marginBottom: '20px' }}>Notifications</h2>
                 <Button 
                   variant="primary" 
                   onClick={() => setShowCreateForm(!showCreateForm)}
@@ -684,24 +687,48 @@ const AdminDashboard = () => {
                 </Button>
 
                 {showCreateForm && (
-                  <Form onSubmit={handleCreateNotification} className="mt-3">
-                    <Form.Group controlId="formNotificationMessage">
-                      <Form.Label>Message de la Notification</Form.Label>
-                      <Form.Control
-                        type="text"
-                        placeholder="Entrez le message de la notification"
-                        value={notificationMessage}
-                        onChange={(e) => setNotificationMessage(e.target.value)}
-                        required
-                      />
-                    </Form.Group>
-                    <Button variant="primary" type="submit" style={{ marginBottom: '20px' }}>
-                      Créer la Notification
-                    </Button>
-                  </Form>
+                  <Card className="mb-3 shadow">
+                    <Card.Body>
+                      <Form onSubmit={handleCreateNotification}>
+                        <Form.Group controlId="formNotificationMessage">
+                          <Form.Label>Message de la Notification</Form.Label>
+                          <Form.Control
+                            type="text"
+                            placeholder="Entrez le message de la notification"
+                            value={notificationMessage}
+                            onChange={(e) => setNotificationMessage(e.target.value)}
+                            required
+                          />
+                        </Form.Group>
+                        <Button variant="primary" type="submit">
+                          Créer la Notification
+                        </Button>
+                      </Form>
+                    </Card.Body>
+                  </Card>
                 )}
 
-                <NotificationList notifications={notifications} onDelete={handleDeleteNotification} />
+                <Card className="shadow">
+                  <Card.Header>Liste des Notifications</Card.Header>
+                  <ListGroup variant="flush">
+                    {notifications.map(notification => (
+                      <ListGroup.Item key={notification.id} className="d-flex justify-content-between align-items-center">
+                        <div className="d-flex align-items-center">
+                          <span className="me-2">
+                            <FaBell />
+                          </span>
+                          <span>{notification.message}</span>
+                          <span className="text-muted ms-3">
+                            {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                          </span>
+                        </div>
+                        <Button variant="danger" onClick={() => handleDeleteNotification(notification.id)}>
+                          <FaTrash />
+                        </Button>
+                      </ListGroup.Item>
+                    ))}
+                  </ListGroup>
+                </Card>
               </div>
             )}
           </StyledContent>
