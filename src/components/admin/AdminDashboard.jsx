@@ -175,11 +175,14 @@ const NotificationCard = ({ notification }) => (
   </StyledCard>
 );
 
-const NotificationList = ({ notifications }) => (
+const NotificationList = ({ notifications, onDelete }) => (
   <Row>
     {notifications.map(notification => (
       <Col md={4} key={notification.id}>
         <NotificationCard notification={notification} />
+        <Button variant="danger" onClick={() => onDelete(notification.id)}>
+          Supprimer
+        </Button>
       </Col>
     ))}
   </Row>
@@ -591,6 +594,21 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleDeleteNotification = async (notificationId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette notification ?')) {
+      const token = localStorage.getItem('token'); // Assurez-vous que le token est stocké
+      console.log(token); // Vérifiez que le token est bien récupéré
+      try {
+        await ApiNotificationService.deleteNotification(notificationId);
+        fetchNotifications(); // Rafraîchir la liste des notifications
+        toast.success('Notification supprimée avec succès');
+      } catch (error) {
+        console.error('Error deleting notification:', error);
+        toast.error('Erreur lors de la suppression de la notification');
+      }
+    }
+  };
+
   return (
     <StyledDashboard>
       <ToastContainer />
@@ -660,6 +678,7 @@ const AdminDashboard = () => {
                 <Button 
                   variant="primary" 
                   onClick={() => setShowCreateForm(!showCreateForm)}
+                  style={{ marginBottom: '20px' }}
                 >
                   {showCreateForm ? 'Annuler' : 'Ajouter une Notification'}
                 </Button>
@@ -676,13 +695,13 @@ const AdminDashboard = () => {
                         required
                       />
                     </Form.Group>
-                    <Button variant="primary" type="submit">
+                    <Button variant="primary" type="submit" style={{ marginBottom: '20px' }}>
                       Créer la Notification
                     </Button>
                   </Form>
                 )}
 
-                <NotificationList notifications={notifications} />
+                <NotificationList notifications={notifications} onDelete={handleDeleteNotification} />
               </div>
             )}
           </StyledContent>

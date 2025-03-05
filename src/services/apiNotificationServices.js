@@ -28,7 +28,13 @@ const ApiNotificationService = {
   // Fonction pour supprimer une notification
   deleteNotification: async (id) => {
     try {
-      await axios.delete(`${API_URL}/${id}`);
+      const token = localStorage.getItem('token'); // Assurez-vous que le token est stocké
+      const response = await axios.delete(`${API_URL}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}` // Ajoutez le token d'authentification
+        }
+      });
+      return response.data;
     } catch (error) {
       console.error('Error deleting notification:', error);
       throw error; // Propager l'erreur pour la gestion dans le composant
