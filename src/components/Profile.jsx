@@ -21,6 +21,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useUser } from '../contexts/userContext';
 import { useNavigate } from 'react-router-dom';
 import ApiExpertRequestService from '../services/apiExpertRequestServices';
+import FlouciService from '../services/flouciService';
 
 export default function ProfilePage() {
   const { user: contextUser, logout } = useUser();
@@ -62,6 +63,7 @@ export default function ProfilePage() {
   const [isDisconnected, setIsDisconnected] = useState(false); // State for disconnect functionality
   const [error, setError] = useState(null);
   const [expertiseCount, setExpertiseCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (userId) {
@@ -235,6 +237,34 @@ export default function ProfilePage() {
     { label: 'Bio', field: 'bio', type: 'textarea' },
   ];
 
+  const handlePromoteClick = async (annonceId) => {
+    setIsLoading(true);
+    try {
+      const amount = 5000;
+      const paymentResponse = await FlouciService.generatePaymentLink(
+        amount, 
+        contextUser.id,
+        annonceId
+      );
+
+      console.log('Payment response:', paymentResponse);
+
+      // Vérifier si nous avons un lien dans la réponse
+      if (paymentResponse && paymentResponse.result && paymentResponse.result.link) {
+        // Rediriger vers le lien de paiement Flouci
+        window.location.href = paymentResponse.result.link;
+      } else {
+        console.error('Invalid payment response:', paymentResponse);
+        toast.error("Erreur lors de la génération du lien de paiement");
+      }
+    } catch (error) {
+      console.error('Error initiating payment:', error);
+      toast.error(error.message || "Une erreur est survenue lors de l'initialisation du paiement");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   if (error) {
     return <div className="error-container">Error: {error}</div>;
   }
@@ -365,7 +395,16 @@ export default function ProfilePage() {
                 <div className="vehicle-info">
                   <h3>{car?.make} {car?.model}</h3>
                   <div className="vehicle-actions">
-                  <button onClick={() => {/* edit_1 */}}>Promouvoir</button>
+                    {!car.promoted && (
+                      <Button 
+                        onClick={() => handlePromoteClick(car.id)}
+                        variant="primary"
+                        className="promote-btn"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Chargement...' : 'Promouvoir'}
+                      </Button>
+                    )}
                     <button onClick={() => fetchCarDetails(car.id)}>Détails</button>
                     <button onClick={() => handleDeleteCar(car.id)} className="delete-btn">
                       Supprimer

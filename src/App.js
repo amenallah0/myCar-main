@@ -28,6 +28,8 @@ import ExpertiseRequests from './components/ExpertiseRequests';
 import ExpertReport from './components/ExpertReport';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import MySentRequests from './components/MySentRequests';
+import PaymentSuccess from './components/PaymentSuccess';
+import PaymentFailed from './components/PaymentFailed';
 
 
 function App() {
@@ -61,6 +63,8 @@ function App() {
           <Route path="/my-expertise-requests" element={<ExpertiseRequests />} />
           <Route path="/expert-report/:requestId" element={<ExpertReport />} />
           <Route path="/my-sent-requests" element={<MySentRequests />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/payment-failed" element={<PaymentFailed />} />
 
         </Routes>
       </BrowserRouter>
