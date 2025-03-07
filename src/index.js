@@ -5,13 +5,16 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import "./index.scss";
 import { UserProvider } from './userContext.jsx';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <UserProvider>
+    <NotificationProvider>
       <App />
-    </UserProvider>
+    </NotificationProvider>
+  </UserProvider>
 );
 
 reportWebVitals();

@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/userContext';
+import { useNotification } from '../contexts/NotificationContext';
+import NotificationDropdown from './NotificationDropdown';
 
 const HeaderFive = () => {
   const [active, setActive] = useState(false);
@@ -8,6 +10,8 @@ const HeaderFive = () => {
   const [wishlistCount, setWishlistCount] = useState(0);
   const { user, logout } = useUser();
   const navigate = useNavigate();
+  const { notifications } = useNotification();
+  const notificationCount = notifications.length;
 
   // Optimisation du gestionnaire de défilement
   const handleScroll = useCallback(() => {
@@ -159,14 +163,17 @@ const HeaderFive = () => {
                   {wishlistCount > 0 && <span style={countStyle}>{wishlistCount}</span>}
                 </Link>
               </li>
-              <li style={menuItemStyle}>
+              {/* <li style={menuItemStyle}>
                 <Link to="/cart" style={userMenuStyle} className="hover-effect">
                   <i className="fas fa-shopping-cart" style={userIconStyle}></i>
                   <span style={countStyle}>0</span>
                 </Link>
-              </li>
+              </li> */}
             </>
           )}
+          <li style={menuItemStyle}>
+            <NotificationDropdown />
+          </li>
         </ul>
       </div>
     );

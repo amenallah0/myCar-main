@@ -27,6 +27,7 @@ import { motion } from 'framer-motion';
 import { FaTrash } from 'react-icons/fa';
 import { FaBell } from 'react-icons/fa';
 import { formatDistanceToNow } from 'date-fns';
+import { useNotification } from '../../contexts/NotificationContext';
 
 // Styled Components
 const StyledDashboard = styled.div`
@@ -240,6 +241,8 @@ const AdminDashboard = () => {
   const [notifications, setNotifications] = useState([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
+
+  const { addNotification } = useNotification();
 
   useEffect(() => {
     if (!user || user.role !== 'ADMIN') {
@@ -587,6 +590,7 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       await ApiNotificationService.createNotification({ message: notificationMessage });
+      addNotification({ message: notificationMessage });
       toast.success('Notification créée avec succès');
       setNotificationMessage('');
       setShowCreateForm(false);

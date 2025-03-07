@@ -365,6 +365,7 @@ export default function ProfilePage() {
                 <div className="vehicle-info">
                   <h3>{car?.make} {car?.model}</h3>
                   <div className="vehicle-actions">
+                  <button onClick={() => {/* edit_1 */}}>Promouvoir</button>
                     <button onClick={() => fetchCarDetails(car.id)}>Détails</button>
                     <button onClick={() => handleDeleteCar(car.id)} className="delete-btn">
                       Supprimer
