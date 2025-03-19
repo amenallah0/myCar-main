@@ -2,7 +2,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Nav } from 'react-bootstrap';
-import { FaHome, FaUsers, FaCar, FaChartBar, FaCog, FaBell } from 'react-icons/fa';
+import { FaHome, FaUsers, FaCar, FaCog, FaBell, FaStar } from 'react-icons/fa';
 
 const StyledNav = styled(Nav)`
   .nav-link {
@@ -53,10 +53,10 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
         <FaCar /> Cars
       </Nav.Link>
       <Nav.Link 
-        className={activeTab === 'sales' ? 'active' : ''} 
-        onClick={() => setActiveTab('sales')}
+        className={activeTab === 'promoted-cars' ? 'active' : ''} 
+        onClick={() => setActiveTab('promoted-cars')}
       >
-        <FaChartBar /> Sales
+        <FaStar /> Promoted Cars
       </Nav.Link>
       <Nav.Link 
         className={activeTab === 'settings' ? 'active' : ''} 

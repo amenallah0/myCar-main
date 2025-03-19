@@ -28,6 +28,13 @@ import { FaTrash } from 'react-icons/fa';
 import { FaBell } from 'react-icons/fa';
 import { formatDistanceToNow } from 'date-fns';
 import { useNotification } from '../../contexts/NotificationContext';
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/swiper-bundle.min.css";
+import SwiperCore, { Autoplay, Pagination, Navigation } from "swiper";
+import moment from "moment";
+
+// Register Swiper modules
+SwiperCore.use([Autoplay, Pagination, Navigation]);
 
 // Styled Components
 const StyledDashboard = styled.div`
@@ -142,22 +149,18 @@ const FormActions = styled.div`
 `;
 
 const StyledTable = styled(Table)`
-  background-color: #fff;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  
+  overflow: hidden;
+
   th {
-    background-color: #3498db;
-    color: #fff;
-    text-align: center;
+    background: #2c3e50;
+    color: white;
   }
 
   td {
-    text-align: center;
-  }
-
-  tr:hover {
-    background-color: #f1f1f1;
+    vertical-align: middle;
   }
 `;
 
@@ -197,6 +200,199 @@ const AnimatedCard = ({ children }) => (
     {children}
   </motion.div>
 );
+
+const AdminPromotedCars = () => {
+  const [promotedCars, setPromotedCars] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' ou 'table'
+
+  const handleEditCar = (car) => {
+    console.log('Editing car:', car);
+    // Implémentez la logique d'édition ici
+  };
+
+  const handleDeleteCar = async (carId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette voiture ?')) {
+      try {
+        await ApiCarService.deleteCar(carId);
+        // Rafraîchir la liste des voitures promues
+        const response = await ApiCarService.getPromotedCars();
+        setPromotedCars(response);
+        toast.success('Voiture supprimée avec succès');
+      } catch (error) {
+        console.error('Error deleting car:', error);
+        toast.error('Erreur lors de la suppression de la voiture');
+      }
+    }
+  };
+
+  useEffect(() => {
+    const fetchPromotedCars = async () => {
+      try {
+        const response = await ApiCarService.getPromotedCars();
+        setPromotedCars(response);
+      } catch (error) {
+        console.error("Error fetching promoted cars:", error);
+        toast.error("Erreur lors de la récupération des voitures promues");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPromotedCars();
+  }, []);
+
+  if (loading) return <div>Chargement...</div>;
+
+  return (
+    <div className="promoted-cars-section">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 className="mb-0">Voitures Promues</h2>
+          <p className="text-muted mb-0">Gérez vos voitures en promotion</p>
+        </div>
+        <div className="d-flex align-items-center gap-3">
+          <span className="badge bg-primary fs-6">
+            {promotedCars.length} voitures
+          </span>
+          <div className="btn-group">
+            <Button
+              variant={viewMode === 'grid' ? 'primary' : 'outline-primary'}
+              onClick={() => setViewMode('grid')}
+            >
+              <i className="fas fa-th-large"></i>
+            </Button>
+            <Button
+              variant={viewMode === 'table' ? 'primary' : 'outline-primary'}
+              onClick={() => setViewMode('table')}
+            >
+              <i className="fas fa-list"></i>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Chargement...</span>
+          </div>
+        </div>
+      ) : promotedCars.length === 0 ? (
+        <div className="text-center py-5 bg-light rounded">
+          <i className="fas fa-car fa-3x text-muted mb-3"></i>
+          <h4>Aucune voiture promue</h4>
+          <p className="text-muted">Les voitures promues apparaîtront ici</p>
+        </div>
+      ) : viewMode === 'table' ? (
+        // Vue tableau
+        <StyledTable striped bordered hover className="mb-5">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Détails</th>
+              <th>Prix</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {promotedCars.map((car) => (
+              <tr key={car.id}>
+                <td style={{ width: '150px' }}>
+                  <img
+                    src={`http://localhost:8081/api/files/download/${car.images[0]?.filename}`}
+                    alt={`${car.make} ${car.model}`}
+                    className="img-fluid rounded"
+                    style={{ height: '80px', objectFit: 'cover' }}
+                  />
+                </td>
+                <td>
+                  <h6 className="mb-1">{car.make} {car.model}</h6>
+                  <small className="text-muted">ID: {car.id}</small>
+                </td>
+                <td>
+                  <h6 className="mb-0">{car.price} €</h6>
+                </td>
+                <td>
+                  <span className="badge bg-success">Promue</span>
+                </td>
+                <td>
+                  <div className="d-flex gap-2">
+                    <Button
+                      variant="outline-primary"
+                      size="sm"
+                      onClick={() => handleEditCar(car)}
+                    >
+                      <i className="fas fa-edit"></i>
+                    </Button>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={() => handleDeleteCar(car.id)}
+                    >
+                      <i className="fas fa-trash"></i>
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </StyledTable>
+      ) : (
+        // Vue grille
+        <div className="row g-4">
+          {promotedCars.map((car) => (
+            <div key={car.id} className="col-md-4">
+              <Card className="h-100 shadow-sm hover-shadow">
+                <div className="position-relative">
+                  <Card.Img
+                    variant="top"
+                    src={`http://localhost:8081/api/files/download/${car.images[0]?.filename}`}
+                    style={{ height: '200px', objectFit: 'cover' }}
+                  />
+                  <div className="position-absolute top-0 end-0 m-2">
+                    <span className="badge bg-success">Promue</span>
+                  </div>
+                </div>
+                <Card.Body>
+                  <div className="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                      <Card.Title className="mb-0">{car.make} {car.model}</Card.Title>
+                      <small className="text-muted">ID: {car.id}</small>
+                    </div>
+                    <h5 className="text-primary mb-0">{car.price} €</h5>
+                  </div>
+                  <div className="d-flex justify-content-between align-items-center mt-3">
+                    <small className="text-muted">
+                      Promue le: {moment(car.promotionStartDate).format("DD/MM/YYYY")}
+                    </small>
+                    <div className="btn-group">
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => handleEditCar(car)}
+                      >
+                        <i className="fas fa-edit"></i>
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDeleteCar(car.id)}
+                      >
+                        <i className="fas fa-trash"></i>
+                      </Button>
+                    </div>
+                  </div>
+                </Card.Body>
+              </Card>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const AdminDashboard = () => {
   const { user } = useUser();
@@ -679,6 +875,7 @@ const AdminDashboard = () => {
                 )}
               </>
             )}
+            {activeTab === 'promoted-cars' && <AdminPromotedCars />}
             {activeTab === 'notifications' && (
               <div>
                 <h2 style={{ marginBottom: '20px' }}>Notifications</h2>
