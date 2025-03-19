@@ -25,7 +25,17 @@ const HeroSix = () => {
       }
     };
 
+    const fetchPromotedCars = async () => {
+      try {
+        const response = await ApiCarService.getPromotedCars();
+        setCars([...response]);
+      } catch (error) {
+        console.error("Error fetching promoted cars:", error);
+      }
+    };
+
     fetchLatestCars();
+    fetchPromotedCars();
   }, []);
 
   if (loading) return <p>Loading...</p>;

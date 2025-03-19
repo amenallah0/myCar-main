@@ -94,6 +94,31 @@ const ApiCarService = {
             throw error.response.data;
         }
     },
+    updatePromotionStatus: async (carId, promoted) => {
+        try {
+            console.log('Sending promotion update request:', { carId, promoted }); // Log pour debug
+            const response = await api.put(`/cars/${carId}/promote`, null, {
+                params: { promoted },
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            console.log('Promotion update response:', response.data); // Log pour debug
+            return response.data;
+        } catch (error) {
+            console.error('Error updating promotion status:', error);
+            throw error.response?.data || error;
+        }
+    },
+    getPromotedCars: async () => {
+        try {
+            const response = await api.get('/cars/promoted');
+            return response.data;
+        } catch (error) {
+            console.error('Error getting promoted cars:', error);
+            throw error.response?.data || error;
+        }
+    },
 };
 
 

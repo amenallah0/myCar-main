@@ -240,6 +240,7 @@ export default function ProfilePage() {
   const handlePromoteClick = async (annonceId) => {
     setIsLoading(true);
     try {
+      console.log('Starting promotion process for car:', annonceId); // Debug log
       const amount = 5000;
       const paymentResponse = await FlouciService.generatePaymentLink(
         amount, 
@@ -247,11 +248,8 @@ export default function ProfilePage() {
         annonceId
       );
 
-      console.log('Payment response:', paymentResponse);
-
-      // Vérifier si nous avons un lien dans la réponse
       if (paymentResponse && paymentResponse.result && paymentResponse.result.link) {
-        // Rediriger vers le lien de paiement Flouci
+        // Le carId sera maintenant inclus dans l'URL de succès via le service Flouci
         window.location.href = paymentResponse.result.link;
       } else {
         console.error('Invalid payment response:', paymentResponse);

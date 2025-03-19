@@ -151,7 +151,7 @@ const AnnonceCarousel = ({ annonces, autoplay = true, interval = 5000 }) => {
 
 const containerStyle = {
     position: 'relative',
-    width: '90vw',
+    width: '85vw',
     height: '400px',
     margin: '0 auto',
     overflow: 'hidden',
