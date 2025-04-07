@@ -119,8 +119,8 @@ const initialFormState = {
     titre: '',
     description: '',
     image: '',
-    dateDebut: '',
-    dateExpiration: ''
+    dateDebut: new Date().toISOString().slice(0, 16),
+    dateExpiration: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
 };
 
 const AdminAnnonces = ({ annonces, onDelete, onEdit, onCreate }) => {
@@ -184,18 +184,23 @@ const AdminAnnonces = ({ annonces, onDelete, onEdit, onCreate }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            if (!formData.dateDebut || !formData.dateExpiration) {
+                alert("Les dates de début et d'expiration sont requises");
+                return;
+            }
+
             const annonceData = {
-                ...formData,
-                dateDebut: new Date(formData.dateDebut).toISOString(),
-                dateExpiration: new Date(formData.dateExpiration).toISOString()
+                titre: formData.titre,
+                description: formData.description,
+                image: formData.image,
+                dateDebut: formData.dateDebut,
+                dateExpiration: formData.dateExpiration
             };
             
             if (currentAnnonce) {
-                await ApiAnnonceService.updateAnnonce(currentAnnonce.id, annonceData);
-                onEdit && onEdit();
+                await onEdit(currentAnnonce.id, annonceData);
             } else {
-                await ApiAnnonceService.createAnnonce(annonceData);
-                onCreate && onCreate();
+                await onCreate(annonceData);
             }
             
             setShowModal(false);

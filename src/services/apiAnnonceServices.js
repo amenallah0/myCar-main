@@ -15,14 +15,24 @@ const ApiAnnonceService = {
     createAnnonce: async (annonce) => {
         const token = localStorage.getItem('token');
         
-        // Convertir les dates en format ISO pour le backend
-        const formattedAnnonce = {
-            ...annonce,
-            dateDebut: annonce.dateDebut ? new Date(annonce.dateDebut).toISOString() : null,
-            dateExpiration: annonce.dateExpiration ? new Date(annonce.dateExpiration).toISOString() : null
-        };
+        // Vérification des données
+        if (!annonce || typeof annonce !== 'object') {
+            throw new Error('Les données de l\'annonce sont invalides');
+        }
+
+        // Vérification des dates
+        if (!annonce.dateDebut || !annonce.dateExpiration) {
+            throw new Error('Les dates de début et d\'expiration sont requises');
+        }
 
         try {
+            // Formatage des dates
+            const formattedAnnonce = {
+                ...annonce,
+                dateDebut: annonce.dateDebut ? new Date(annonce.dateDebut).toISOString() : null,
+                dateExpiration: annonce.dateExpiration ? new Date(annonce.dateExpiration).toISOString() : null
+            };
+
             const response = await axios.post(API_URL, formattedAnnonce, {
                 headers: {
                     'Authorization': `Bearer ${token}`,

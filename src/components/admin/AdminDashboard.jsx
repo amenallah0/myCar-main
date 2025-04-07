@@ -698,8 +698,22 @@ const AdminDashboard = () => {
 
   const handleCreateAnnonce = async (formData) => {
     try {
-      await ApiAnnonceService.createAnnonce(formData);
-      await fetchAnnonces();
+      // Vérification des données reçues
+      console.log('Données reçues dans handleCreateAnnonce:', formData);
+      
+      // S'assurer que toutes les propriétés nécessaires sont présentes
+      if (!formData.titre || !formData.description || !formData.dateDebut || !formData.dateExpiration) {
+        throw new Error('Données d\'annonce incomplètes');
+      }
+
+      const annonceData = {
+        ...formData,
+        dateDebut: new Date(formData.dateDebut).toISOString(),
+        dateExpiration: new Date(formData.dateExpiration).toISOString()
+      };
+
+      await ApiAnnonceService.createAnnonce(annonceData);
+      await fetchAnnonces();  // Rafraîchir la liste des annonces
       toast.success('Annonce créée avec succès');
     } catch (error) {
       console.error('Error creating annonce:', error);
