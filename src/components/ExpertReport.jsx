@@ -3,7 +3,7 @@ import { Container, Form, Button, Card, Row, Col, Alert } from 'react-bootstrap'
 import { useParams, useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/userContext';
 import { toast } from 'react-toastify';
-import HeaderFive from './HeaderFive';
+import HeaderFive from '../components/HeaderFive';
 import { 
   FaCar, FaFileAlt, FaUser, FaCalendarAlt, 
   FaClipboardList, FaTools, FaTachometerAlt,
@@ -169,6 +169,7 @@ const ExpertReport = () => {
   const { requestId } = useParams();
   const { user } = useUser();
   const [carDetails, setCarDetails] = useState(null);
+  const [requestDetails, setRequestDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
@@ -189,6 +190,7 @@ const ExpertReport = () => {
     try {
       const data = await apiExpertiseService.getExpertiseRequest(requestId);
       setCarDetails(data.car);
+      setRequestDetails(data);
       setLoading(false);
     } catch (error) {
       toast.error("Erreur lors du chargement des détails");
@@ -208,13 +210,13 @@ const ExpertReport = () => {
     try {
       const formDataToSend = new FormData();
       
-      // Assurez-vous que la date est au format YYYY-MM-DD
-      const date = new Date(formData.expertiseDate);
-      const formattedDate = date.toISOString().split('T')[0];
+      // On utilise l'ID de la demande d'expertise qui contient déjà la référence à l'utilisateur
+      formDataToSend.append('expertiseRequestId', requestId);
       
+      // Reste des données du formulaire
       formDataToSend.append('title', formData.title);
       formDataToSend.append('criticalData', formData.criticalData);
-      formDataToSend.append('expertiseDate', formattedDate);
+      formDataToSend.append('expertiseDate', formData.expertiseDate);
       formDataToSend.append('message', formData.message);
       formDataToSend.append('expertName', formData.expertName);
       formDataToSend.append('expertEmail', formData.expertEmail);
@@ -226,28 +228,11 @@ const ExpertReport = () => {
 
       await apiExpertiseService.submitReport(requestId, formDataToSend);
       
-      // Afficher le toast de succès
-      toast.success("Rapport d'expertise soumis avec succès!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true
-      });
-
-      // Rediriger vers le profil de l'expert avec son username
+      toast.success("Rapport d'expertise envoyé avec succès au client!");
       navigate(`/profile/${user.username}`);
       
     } catch (error) {
-      toast.error("Erreur lors de la soumission du rapport: " + (error.response?.data?.message || "Veuillez réessayer"), {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true
-      });
+      toast.error("Erreur lors de l'envoi du rapport: " + (error.response?.data?.message || "Veuillez réessayer"));
       console.error('Detailed error:', error.response?.data);
     }
   };
@@ -261,181 +246,174 @@ const ExpertReport = () => {
   };
 
   return (
-    <StyledContainer>
-      {loading ? (
-        <LoadingSpinner>
-          <div className="spinner-border" role="status">
-            <span className="visually-hidden">Chargement...</span>
-          </div>
-        </LoadingSpinner>
-      ) : (
-        <StyledCard>
-          <StyledHeader>
-            <FaFileAlt />
-            Rapport d'Expertise Automobile
-          </StyledHeader>
-          <StyledBody>
-            {carDetails && (
-              <InfoCard>
+    <div className="expert-report-page">
+      <HeaderFive />
+      <StyledContainer>
+        {loading ? (
+          <LoadingSpinner>
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">Chargement...</span>
+            </div>
+          </LoadingSpinner>
+        ) : (
+          <StyledCard>
+            <StyledHeader>
+              <FaFileAlt />
+              Rapport d'Expertise Automobile
+            </StyledHeader>
+            <StyledBody>
+              {carDetails && (
+                <InfoCard>
+                  <Row>
+                    <Col md={6}>
+                      <SectionTitle>
+                        <FaCar className="me-2" />
+                        Détails du Véhicule
+                      </SectionTitle>
+                      <p><strong>Marque:</strong> {carDetails.make}</p>
+                      <p><strong>Modèle:</strong> {carDetails.model}</p>
+                      <p><strong>Année:</strong> {carDetails.year}</p>
+                    </Col>
+                    <Col md={6}>
+                      <SectionTitle>
+                        <FaUser className="me-2" />
+                        Informations du Demandeur
+                      </SectionTitle>
+                      {requestDetails?.user && (
+                        <>
+                          <p><strong>Nom:</strong> {requestDetails.user.firstName} {requestDetails.user.lastName}</p>
+                          <p><strong>Email:</strong> {requestDetails.user.email}</p>
+                          {requestDetails.user.phone && (
+                            <p><strong>Téléphone:</strong> {requestDetails.user.phone}</p>
+                          )}
+                          <p><strong>Date de la demande:</strong> {new Date(requestDetails.createdAt).toLocaleDateString('fr-FR')}</p>
+                        </>
+                      )}
+                    </Col>
+                  </Row>
+                </InfoCard>
+              )}
+
+              <StyledForm onSubmit={handleSubmit}>
                 <Row>
-                  <Col md={6}>
-                    <SectionTitle>
-                      <FaCar className="me-2" />
-                      Détails du Véhicule
-                    </SectionTitle>
-                    <p><strong>Marque:</strong> {carDetails.make}</p>
-                    <p><strong>Modèle:</strong> {carDetails.model}</p>
-                    <p><strong>Année:</strong> {carDetails.year}</p>
-                  </Col>
-                  <Col md={6}>
-                    <SectionTitle>
-                      <FaUser className="me-2" />
-                      Coordonnées de l'Expert
-                    </SectionTitle>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Nom complet</Form.Label>
+                  <Col md={12}>
+                    <Form.Group className="mb-4">
+                      <Form.Label>
+                        <FaFileAlt className="me-2" />
+                        Titre du Rapport
+                      </Form.Label>
                       <Form.Control
                         type="text"
-                        name="expertName"
-                        value={formData.expertName}
+                        name="title"
+                        value={formData.title}
                         onChange={handleChange}
                         required
-                        placeholder="Entrez votre nom complet"
+                        placeholder="Titre du rapport d'expertise"
                       />
                     </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Email</Form.Label>
+                  </Col>
+
+                  <Col md={12}>
+                    <Form.Group className="mb-4">
+                      <Form.Label>
+                        <FaClipboardList className="me-2" />
+                        Données Critiques
+                      </Form.Label>
                       <Form.Control
-                        type="email"
-                        value={formData.expertEmail}
-                        disabled
-                        readOnly
-                      />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Téléphone</Form.Label>
-                      <Form.Control
-                        type="tel"
-                        name="expertPhone"
-                        value={formData.expertPhone}
+                        as="textarea"
+                        rows={4}
+                        name="criticalData"
+                        value={formData.criticalData}
                         onChange={handleChange}
                         required
-                        placeholder="Entrez votre numéro de téléphone"
-                        pattern="[0-9]{8}"
-                        maxLength="8"
+                        placeholder="Données critiques du véhicule..."
                       />
+                    </Form.Group>
+                  </Col>
+
+                  <Col md={6}>
+                    <Form.Group className="mb-4">
+                      <Form.Label>
+                        <FaCalendarAlt className="me-2" />
+                        Date d'Expertise
+                      </Form.Label>
+                      <Form.Control
+                        type="date"
+                        name="expertiseDate"
+                        value={formData.expertiseDate}
+                        onChange={handleChange}
+                        required
+                      />
+                    </Form.Group>
+                  </Col>
+
+                  <Col md={12}>
+                    <Form.Group className="mb-4">
+                      <Form.Label>
+                        <FaFileAlt className="me-2" />
+                        Message Détaillé
+                      </Form.Label>
+                      <Form.Control
+                        as="textarea"
+                        rows={6}
+                        name="message"
+                        value={formData.message}
+                        onChange={handleChange}
+                        required
+                        placeholder="Message détaillé de l'expertise..."
+                      />
+                    </Form.Group>
+                  </Col>
+
+                  <Col md={12}>
+                    <Form.Group className="mb-4">
+                      <FileUploadSection>
+                        <label htmlFor="file-upload">
+                          <FaCloudUploadAlt className="upload-icon" />
+                          <div>Cliquez ou glissez un fichier ici</div>
+                          <div className="text-muted">(PDF ou Image)</div>
+                          {selectedFile && (
+                            <div className="file-name">
+                              Fichier sélectionné: {selectedFile.name}
+                            </div>
+                          )}
+                        </label>
+                        <input
+                          id="file-upload"
+                          type="file"
+                          accept=".pdf,image/*"
+                          onChange={handleFileChange}
+                        />
+                      </FileUploadSection>
                     </Form.Group>
                   </Col>
                 </Row>
-              </InfoCard>
-            )}
 
-            <StyledForm onSubmit={handleSubmit}>
-              <Row>
-                <Col md={12}>
-                  <Form.Group className="mb-4">
-                    <Form.Label>
-                      <FaFileAlt className="me-2" />
-                      Titre du Rapport
-                    </Form.Label>
-                    <Form.Control
-                      type="text"
-                      name="title"
-                      value={formData.title}
-                      onChange={handleChange}
-                      required
-                      placeholder="Titre du rapport d'expertise"
-                    />
-                  </Form.Group>
-                </Col>
+                <div className="text-end mt-4">
+                  <StyledButton type="submit">
+                    <FaCheckCircle className="me-2" />
+                    Soumettre le Rapport
+                  </StyledButton>
+                </div>
+              </StyledForm>
+            </StyledBody>
+          </StyledCard>
+        )}
+      </StyledContainer>
 
-                <Col md={12}>
-                  <Form.Group className="mb-4">
-                    <Form.Label>
-                      <FaClipboardList className="me-2" />
-                      Données Critiques
-                    </Form.Label>
-                    <Form.Control
-                      as="textarea"
-                      rows={4}
-                      name="criticalData"
-                      value={formData.criticalData}
-                      onChange={handleChange}
-                      required
-                      placeholder="Données critiques du véhicule..."
-                    />
-                  </Form.Group>
-                </Col>
+      <style jsx>{`
+        .expert-report-page {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+        }
 
-                <Col md={6}>
-                  <Form.Group className="mb-4">
-                    <Form.Label>
-                      <FaCalendarAlt className="me-2" />
-                      Date d'Expertise
-                    </Form.Label>
-                    <Form.Control
-                      type="date"
-                      name="expertiseDate"
-                      value={formData.expertiseDate}
-                      onChange={handleChange}
-                      required
-                    />
-                  </Form.Group>
-                </Col>
-
-                <Col md={12}>
-                  <Form.Group className="mb-4">
-                    <Form.Label>
-                      <FaFileAlt className="me-2" />
-                      Message Détaillé
-                    </Form.Label>
-                    <Form.Control
-                      as="textarea"
-                      rows={6}
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      required
-                      placeholder="Message détaillé de l'expertise..."
-                    />
-                  </Form.Group>
-                </Col>
-
-                <Col md={12}>
-                  <Form.Group className="mb-4">
-                    <FileUploadSection>
-                      <label htmlFor="file-upload">
-                        <FaCloudUploadAlt className="upload-icon" />
-                        <div>Cliquez ou glissez un fichier ici</div>
-                        <div className="text-muted">(PDF ou Image)</div>
-                        {selectedFile && (
-                          <div className="file-name">
-                            Fichier sélectionné: {selectedFile.name}
-                          </div>
-                        )}
-                      </label>
-                      <input
-                        id="file-upload"
-                        type="file"
-                        accept=".pdf,image/*"
-                        onChange={handleFileChange}
-                      />
-                    </FileUploadSection>
-                  </Form.Group>
-                </Col>
-              </Row>
-
-              <div className="text-end mt-4">
-                <StyledButton type="submit">
-                  <FaCheckCircle className="me-2" />
-                  Soumettre le Rapport
-                </StyledButton>
-              </div>
-            </StyledForm>
-          </StyledBody>
-        </StyledCard>
-      )}
-    </StyledContainer>
+        .expert-report-content {
+          flex: 1;
+          padding-top: 120px; /* Ajustez cette valeur en fonction de la hauteur de votre header */
+        }
+      `}</style>
+    </div>
   );
 };
 

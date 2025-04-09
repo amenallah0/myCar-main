@@ -155,7 +155,9 @@ const ShopDetails = () => {
                   )}
                   <div className="feature-card">
                     <span className="feature-label">Statut</span>
-                    <span className="feature-value status">Disponible</span>
+                    <span className={`feature-value status ${car.available ? 'available' : 'unavailable'}`}>
+                      {car.available ? 'Disponible' : 'Non disponible'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -815,20 +817,56 @@ const ShopDetails = () => {
         }
 
         .feature-value.status {
-          color: #2ecc71;
-          font-weight: 600;
           display: flex;
           align-items: center;
           gap: 8px;
+          font-weight: 600;
         }
 
-        .feature-value.status::before {
+        .feature-value.status.available {
+          color: #28a745;
+        }
+
+        .feature-value.status.available::before {
           content: '';
           display: inline-block;
           width: 8px;
           height: 8px;
-          background: #2ecc71;
+          background: #28a745;
           border-radius: 50%;
+        }
+
+        .feature-value.status.unavailable {
+          color: #dc3545;
+        }
+
+        .feature-value.status.unavailable::before {
+          content: '';
+          display: inline-block;
+          width: 8px;
+          height: 8px;
+          background: #dc3545;
+          border-radius: 50%;
+        }
+
+        .feature-card:has(.status) {
+          border-left: 4px solid;
+          transition: all 0.3s ease;
+        }
+
+        .feature-card:has(.status.available) {
+          border-left-color: #28a745;
+          background: rgba(40, 167, 69, 0.1);
+        }
+
+        .feature-card:has(.status.unavailable) {
+          border-left-color: #dc3545;
+          background: rgba(220, 53, 69, 0.1);
+        }
+
+        .feature-card:has(.status):hover {
+          transform: translateX(5px);
+          background: white;
         }
 
         .options-grid {

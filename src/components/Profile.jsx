@@ -300,12 +300,20 @@ export default function ProfilePage() {
           </div>
           <div className="profile-actions">
             {user?.role === 'EXPERT' ? (
-              <button 
-                className="view-requests-btn" 
-                onClick={handleViewExpertRequests}
-              >
-                Mes demandes d'expertise ({expertiseCount})
-              </button>
+              <>
+                <button 
+                  className="view-requests-btn" 
+                  onClick={handleViewExpertRequests}
+                >
+                  Mes demandes d'expertise ({expertiseCount})
+                </button>
+                <button 
+                  className="inbox-btn" 
+                  onClick={() => navigate('/expert-inbox')}
+                >
+                  Boîte de réception
+                </button>
+              </>
             ) : (
               <>
                 <button 
@@ -392,6 +400,73 @@ export default function ProfilePage() {
                 </div>
                 <div className="vehicle-info">
                   <h3>{car?.make} {car?.model}</h3>
+                  <div className="availability-toggle">
+                    <Form.Check
+                      type="switch"
+                      id={`availability-switch-${car.id}`}
+                      label={
+                        <span className={`availability-label ${car.available ? 'available' : 'unavailable'}`}>
+                          {car.available ? "Disponible" : "Non disponible"}
+                        </span>
+                      }
+                      checked={car.available}
+                      onChange={async (e) => {
+                        const newAvailabilityStatus = e.target.checked;  // Stocke la nouvelle valeur
+                        try {
+                          await ApiCarService.updateAvailability(car.id, newAvailabilityStatus);
+                          // Mettre à jour l'état local
+                          const updatedCars = user.cars.map(c => 
+                            c.id === car.id ? {...c, available: newAvailabilityStatus} : c
+                          );
+                          setUser((prev) => ({ ...prev, cars: updatedCars }));
+                          
+                          // Toast personnalisé selon le nouvel état
+                          if (newAvailabilityStatus) {  // Si la voiture devient disponible
+                            toast.success("🚗 Voiture marquée comme disponible", {
+                              style: {
+                                background: '#28a745',
+                                color: 'white',
+                                borderRadius: '10px',
+                                padding: '16px',
+                              },
+                              progressStyle: {
+                                background: 'rgba(255, 255, 255, 0.7)',
+                              },
+                              icon: '✅'
+                            });
+                          } else {  // Si la voiture devient non disponible
+                            toast.error("🚫 Voiture marquée comme non disponible", {
+                              style: {
+                                background: '#dc3545',
+                                color: 'white',
+                                borderRadius: '10px',
+                                padding: '16px',
+                              },
+                              progressStyle: {
+                                background: 'rgba(255, 255, 255, 0.7)',
+                              },
+                              icon: '🔒'
+                            });
+                          }
+                        } catch (error) {
+                          console.error('Error updating availability:', error);
+                          toast.error("Une erreur est survenue lors de la mise à jour", {
+                            style: {
+                              background: '#ff4444',
+                              color: 'white',
+                              borderRadius: '10px',
+                              padding: '16px',
+                            },
+                          });
+                          // En cas d'erreur, remettre le switch à son état précédent
+                          const updatedCars = user.cars.map(c => 
+                            c.id === car.id ? {...c, available: !newAvailabilityStatus} : c
+                          );
+                          setUser((prev) => ({ ...prev, cars: updatedCars }));
+                        }
+                      }}
+                    />
+                  </div>
                   <div className="vehicle-actions">
                     {!car.promoted && (
                       <Button 
@@ -701,6 +776,60 @@ export default function ProfilePage() {
           transform: translateY(-1px);
         }
 
+        .availability-toggle {
+          margin: 15px 0;
+          padding: 8px 15px;
+          background-color: #f8f9fa;
+          border-radius: 12px;
+          transition: all 0.3s ease;
+        }
+
+        .availability-toggle:hover {
+          background-color: #e9ecef;
+        }
+
+        .availability-label {
+          font-weight: 500;
+          transition: all 0.3s ease;
+          padding: 4px 8px;
+          border-radius: 6px;
+          margin-left: 8px;
+        }
+
+        .availability-label.available {
+          color: #28a745;
+        }
+
+        .availability-label.unavailable {
+          color: #dc3545;
+        }
+
+        /* Style pour le switch */
+        :global(.form-switch) {
+          padding-left: 2.5em;
+        }
+
+        :global(.form-check-input) {
+          cursor: pointer;
+          width: 3em !important;
+          height: 1.5em !important;
+          margin-top: 0.25em;
+          background-color: #dc3545;
+          border-color: #dc3545;
+          transition: all 0.3s ease !important;
+        }
+
+        :global(.form-check-input:checked) {
+          background-color: #28a745 !important;
+          border-color: #28a745 !important;
+        }
+
+        :global(.form-check-input:focus) {
+          border-color: #28a745;
+          outline: 0;
+          box-shadow: 0 0 0 0.25rem rgba(40, 167, 69, 0.25);
+        }
+
         @media (max-width: 768px) {
           .profile-header {
             flex-direction: column;
@@ -712,6 +841,30 @@ export default function ProfilePage() {
             justify-content: center;
             width: 100%;
           }
+        }
+
+        .inbox-btn {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+          border: 2px solid white;
+          padding: 8px 20px;
+          border-radius: 20px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          white-space: nowrap;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .inbox-btn:hover {
+          background: rgba(255, 255, 255, 0.3);
+          transform: translateY(-1px);
+        }
+
+        .inbox-btn i {
+          font-size: 1.1rem;
         }
       `}</style>
 

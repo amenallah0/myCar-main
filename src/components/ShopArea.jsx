@@ -6,7 +6,13 @@ import 'react-responsive-carousel/lib/styles/carousel.min.css';
 import ApiCarService from '../services/apiCarServices';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer, toast } from 'react-toastify';
-
+import { Swiper, SwiperSlide } from "swiper/react";
+// Import Swiper styles
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "swiper/css/autoplay";
+// Import required modules
 const ShopArea = () => {
   const [range, setRange] = useState([0, 100]);
   const [cars, setCars] = useState([]);
@@ -301,6 +307,9 @@ const ShopArea = () => {
                         </button>
                       </div>
                     </div>
+                    <div className={`availability-strip ${car.available ? 'available' : 'unavailable'}`}>
+                      {car.available ? 'Disponible' : 'Non disponible'}
+                    </div>
                     <div className="car-info">
                       <div className="car-header">
                         <h3 className="car-title">{car.make} {car.model}</h3>
@@ -439,6 +448,7 @@ const ShopArea = () => {
           flex-grow: 1;
           display: flex;
           flex-direction: column;
+          margin-top: 0;
         }
 
         .car-header {
@@ -841,6 +851,24 @@ const ShopArea = () => {
           .sort-select {
             width: 100%;
           }
+        }
+
+        .availability-strip {
+          width: 100%;
+          padding: 8px;
+          text-align: center;
+          color: white;
+          font-weight: 500;
+          font-size: 0.9rem;
+          transition: all 0.3s ease;
+        }
+
+        .availability-strip.available {
+          background-color: #28a745;
+        }
+
+        .availability-strip.unavailable {
+          background-color: #dc3545;
         }
       `}</style>
       <ToastContainer />

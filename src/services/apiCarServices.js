@@ -119,6 +119,15 @@ const ApiCarService = {
             throw error.response?.data || error;
         }
     },
+    updateAvailability: async (carId, available) => {
+        try {
+            const response = await api.put(`/cars/${carId}/availability?available=${available}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error updating car availability:', error);
+            throw error.response?.data || error;
+        }
+    },
 };
 
 
