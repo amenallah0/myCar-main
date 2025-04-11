@@ -210,7 +210,8 @@ const ExpertReport = () => {
     try {
       const formDataToSend = new FormData();
       
-      // On utilise l'ID de la demande d'expertise qui contient déjà la référence à l'utilisateur
+      // Ajout de l'ID de l'utilisateur et de la requête d'expertise
+      formDataToSend.append('userId', requestDetails.user.id);
       formDataToSend.append('expertiseRequestId', requestId);
       
       // Reste des données du formulaire

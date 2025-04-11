@@ -30,6 +30,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import MySentRequests from './components/MySentRequests';
 import PaymentSuccess from './components/PaymentSuccess';
 import PaymentFailed from './components/PaymentFailed';
+import ExpertInbox from './components/ExpertInbox';
 
 
 function App() {
@@ -65,7 +66,7 @@ function App() {
           <Route path="/my-sent-requests" element={<MySentRequests />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-failed" element={<PaymentFailed />} />
-
+          <Route path="/expert-inbox" element={<ExpertInbox />} />
         </Routes>
       </BrowserRouter>
     </UserProvider>

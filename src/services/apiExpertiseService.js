@@ -25,13 +25,20 @@ const apiExpertiseService = {
                 {
                     headers: {
                         'Content-Type': 'multipart/form-data'
+                    },
+                    maxContentLength: Infinity,
+                    maxBodyLength: Infinity,
+                    timeout: 60000, // 60 secondes
+                    onUploadProgress: (progressEvent) => {
+                        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        console.log('Upload progress:', percentCompleted);
                     }
                 }
             );
             return response.data;
         } catch (error) {
-            console.error('Error submitting report:', error.response?.data || error.message);
-            throw new Error('Failed to submit report');
+            console.error('Error submitting report:', error);
+            throw error;
         }
     },
 
