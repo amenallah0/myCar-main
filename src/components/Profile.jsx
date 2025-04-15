@@ -22,6 +22,13 @@ import { useUser } from '../contexts/userContext';
 import { useNavigate } from 'react-router-dom';
 import ApiExpertRequestService from '../services/apiExpertRequestServices';
 import FlouciService from '../services/flouciService';
+import { Swiper, SwiperSlide } from "swiper/react";
+// Import Swiper styles
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "swiper/css/autoplay";
+import axios from 'axios';
 
 export default function ProfilePage() {
   const { user: contextUser, logout } = useUser();
@@ -48,7 +55,6 @@ export default function ProfilePage() {
     firstName: '',
     lastName: '',
     birthDate: '',
-    profession: '',
     bio: '',
   });
   const [showModal, setShowModal] = useState(false);
@@ -64,6 +70,7 @@ export default function ProfilePage() {
   const [error, setError] = useState(null);
   const [expertiseCount, setExpertiseCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [reportsCount, setReportsCount] = useState(0);
 
   useEffect(() => {
     if (userId) {
@@ -97,6 +104,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user?.id && user?.role === 'EXPERT') {
       fetchExpertiseCount();
+      fetchReportsCount();
     }
   }, [user]);
 
@@ -217,13 +225,23 @@ export default function ProfilePage() {
     }
   };
 
+  const fetchReportsCount = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8081/api/expertise-requests/expert/${user.id}`);
+      const completedReports = response.data.filter(request => request.status === 'COMPLETED');
+      setReportsCount(completedReports.length);
+    } catch (error) {
+      console.error('Error fetching reports count:', error);
+      toast.error('Erreur lors du chargement du nombre de rapports');
+    }
+  };
+
   // Regroupement des champs par section pour une meilleure organisation
   const personalInfoFields = [
     { label: 'Prénom', field: 'firstName' },
     { label: 'Nom', field: 'lastName' },
     { label: 'Date de naissance', field: 'birthDate', type: 'date' },
     { label: 'Nom d\'utilisateur', field: 'username' },
-    { label: 'Profession', field: 'profession' },
   ];
 
   const contactInfoFields = [
@@ -311,7 +329,7 @@ export default function ProfilePage() {
                   className="inbox-btn" 
                   onClick={() => navigate('/expert-inbox')}
                 >
-                  Boîte de réception
+                  Boîte de réception {reportsCount > 0 && `(${reportsCount})`}
                 </button>
               </>
             ) : (
@@ -345,7 +363,6 @@ export default function ProfilePage() {
               { label: 'Email', value: user?.email, field: 'email' },
               { label: 'Téléphone', value: user?.phone, field: 'phone' },
               { label: 'Adresse', value: user?.address, field: 'address' },
-              { label: 'Profession', value: user?.profession, field: 'profession' }
             ].map((item) => (
               <div key={item.field} className="info-item">
                 <label>{item.label}</label>
