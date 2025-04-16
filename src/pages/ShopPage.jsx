@@ -7,7 +7,12 @@ import Preloader from "../helper/Preloader";
 import { motion } from "framer-motion";
 import { Container, Row, Col } from "react-bootstrap";
 import SwiperCore, { Autoplay } from 'swiper';
-
+import { Swiper, SwiperSlide } from "swiper/react";
+// Import Swiper styles
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "swiper/css/autoplay";
 const ShopPage = () => {
   const [loading, setLoading] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);

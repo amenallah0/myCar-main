@@ -2,11 +2,7 @@ import React, { useEffect, useState } from "react";
 import HeaderFive from "../components/HeaderFive";
 import HeroSix from "../components/HeroSix";
 import CategoryAreaOne from "../components/CategoryAreaOne";
-import ProductAreaOne from "../components/ProductAreaOne";
-import CTAAreaTwo from "../components/CTAAreaTwo";
-import ProductAreaTwo from "../components/ProductAreaTwo";
 import FaqAreaThree from "../components/FaqAreaThree";
-import ClientAreaFour from "../components/ClientAreaFour";
 import BlogAreaTwo from "../components/BlogAreaTwo";
 import SubscribeTwo from "../components/SubscribeTwo";
 import FooterAreaFour from "../components/FooterAreaFour";
@@ -43,32 +39,23 @@ const HomePageSix = () => {
       {/* Header Five */}
       <HeaderFive />
 
-      <AnnonceCarousel 
-        annonces={annonces}
-        autoplay={true}
-        interval={5000}
-      />
+      {/* Afficher le carousel d'annonces seulement s'il y a des annonces */}
+      {annonces.length > 0 && (
+        <AnnonceCarousel 
+          annonces={annonces}
+          autoplay={true}
+          interval={5000}
+        />
+      )}
 
-      {/* Hero Six */}
-      <HeroSix />
+      {/* Passer l'information sur la présence d'annonces à HeroSix */}
+      <HeroSix hasAnnonces={annonces.length > 0} />
 
       {/* Category Area One */}
       <CategoryAreaOne />
 
-      {/* Product Area One */}
-      {/* <ProductAreaOne /> */}
-
-      {/* CTA Area Two */}
-      {/* <CTAAreaTwo /> */}
-
-      {/* Product Area Two */}
-      {/* <ProductAreaTwo /> */}
-
       {/* Faq Area three */}
       <FaqAreaThree />
-
-      {/* Client Area Four */}
-      {/* <ClientAreaFour /> */}
 
       {/* Blog Area Two */}
       <BlogAreaTwo />
