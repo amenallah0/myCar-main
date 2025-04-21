@@ -122,6 +122,14 @@ const ExpertiseRequests = () => {
     );
   };
 
+  const formatDate = (date) => {
+    if (Array.isArray(date)) {
+      const [year, month, day, hour = 0, minute = 0] = date;
+      return moment([year, month - 1, day, hour, minute]).format('DD MMMM YYYY à HH:mm');
+    }
+    return moment(date).format('DD MMMM YYYY à HH:mm');
+  };
+
   if (loading) return (
     <Container className="py-5">
       <div className="loading-container">
@@ -235,7 +243,7 @@ const ExpertiseRequests = () => {
                         <div className="d-flex align-items-center mb-2">
                           <FaCalendarAlt className="me-2 text-primary" />
                           <small>
-                            Demande reçue le {moment(request.requestDate).format('DD MMMM YYYY à HH:mm')}
+                            Demande reçue le {formatDate(request.requestDate)}
                           </small>
                         </div>
                         {request.user?.address && (

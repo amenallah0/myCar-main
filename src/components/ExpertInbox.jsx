@@ -28,7 +28,6 @@ import PersonIcon from '@mui/icons-material/Person';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import MessageIcon from '@mui/icons-material/Message';
 import DescriptionIcon from '@mui/icons-material/Description';
-import DeleteIcon from '@mui/icons-material/Delete';
 import HeaderFive from './HeaderFive';
 
 const ExpertInbox = () => {
@@ -124,35 +123,6 @@ const ExpertInbox = () => {
       } else {
         alert('Erreur lors du téléchargement du rapport: ' + (err.message || 'Erreur inconnue'));
       }
-    }
-  };
-
-  const handleDeleteReport = async (requestId) => {
-    try {
-      // Première étape : supprimer le rapport d'expert
-      await axios.delete(`http://localhost:8081/api/expert-reports/request/${requestId}`);
-      
-      // Deuxième étape : supprimer la demande d'expertise
-      await axios.delete(`http://localhost:8081/api/expertise-requests/${requestId}`);
-      
-      // Mettre à jour l'interface utilisateur
-      const updatedRequests = allRequests.filter(request => request.id !== requestId);
-      setAllRequests(updatedRequests);
-      const updatedCompletedRequests = completedRequests.filter(request => request.id !== requestId);
-      setCompletedRequests(updatedCompletedRequests);
-
-      // Afficher un message de succès
-      alert('Le rapport a été supprimé avec succès');
-    } catch (err) {
-      console.error('Error deleting report:', err);
-      alert('Erreur lors de la suppression du rapport: ' + (err.response?.data?.message || err.message || 'Erreur inconnue'));
-    }
-  };
-
-  // Ajouter une confirmation avant la suppression
-  const confirmAndDeleteReport = (requestId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce rapport ? Cette action est irréversible.')) {
-      handleDeleteReport(requestId);
     }
   };
 
@@ -408,51 +378,28 @@ const ExpertInbox = () => {
                                 />
                               </Box>
                               
-                              <Box sx={{ display: 'flex', gap: 1 }}>
-                                <Tooltip title="Supprimer le rapport">
+                              {request.report?.fileData && request.status === 'COMPLETED' && (
+                                <Tooltip title={`Télécharger ${request.report.fileName || 'le rapport'}`}>
                                   <Button
-                                    variant="outlined"
+                                    variant="contained"
                                     size="small"
-                                    color="error"
-                                    startIcon={<DeleteIcon />}
-                                    onClick={() => confirmAndDeleteReport(request.id)}
+                                    startIcon={<DownloadIcon />}
+                                    onClick={() => handleDownloadReport(request.id)}
                                     sx={{ 
                                       borderRadius: '8px',
                                       textTransform: 'none',
-                                      borderColor: alpha('#ef4444', 0.3),
+                                      boxShadow: 'none',
+                                      px: 2,
+                                      background: 'linear-gradient(135deg, #ef4444 0%, #991b1b 100%)',
                                       '&:hover': {
-                                        backgroundColor: alpha('#ef4444', 0.05),
-                                        borderColor: '#ef4444',
+                                        boxShadow: `0 4px 12px ${alpha('#ef4444', 0.3)}`,
                                       }
                                     }}
                                   >
-                                    Supprimer
+                                    Télécharger
                                   </Button>
                                 </Tooltip>
-                                
-                                {request.report.fileData && request.status === 'COMPLETED' && (
-                                  <Tooltip title={`Télécharger ${request.report.fileName || 'le rapport'}`}>
-                                    <Button
-                                      variant="contained"
-                                      size="small"
-                                      startIcon={<DownloadIcon />}
-                                      onClick={() => handleDownloadReport(request.id)}
-                                      sx={{ 
-                                        borderRadius: '8px',
-                                        textTransform: 'none',
-                                        boxShadow: 'none',
-                                        px: 2,
-                                        background: 'linear-gradient(135deg, #ef4444 0%, #991b1b 100%)',
-                                        '&:hover': {
-                                          boxShadow: `0 4px 12px ${alpha('#ef4444', 0.3)}`,
-                                        }
-                                      }}
-                                    >
-                                      Télécharger
-                                    </Button>
-                                  </Tooltip>
-                                )}
-                              </Box>
+                              )}
                             </Box>
                           </Paper>
                         </Box>
