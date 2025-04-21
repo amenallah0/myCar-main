@@ -10,6 +10,232 @@ import { motion } from "framer-motion";
 import { FaShoppingCart, FaPhoneAlt, FaRegHeart, FaShare } from 'react-icons/fa';
 import ExpertContactForm from './ExpertContactForm';
 import PredictionService from "./../services/predictionService";
+import { Swiper, SwiperSlide } from "swiper/react";
+// Import Swiper styles
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "swiper/css/autoplay";
+import ReviewService from '../services/ReviewService';
+import { useUser } from '../contexts/userContext';
+
+const ReviewForm = ({ show, handleClose, onSubmit }) => {
+  const [formData, setFormData] = useState({
+    rating: 5,
+    comment: '',
+    userName: ''
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+    handleClose();
+    setFormData({ rating: 5, comment: '', userName: '' });
+  };
+
+  const { user } = useUser();
+
+  if (!show) return null;
+
+  return (
+    <div className="review-form-modal">
+      <div className="review-form-content">
+        <div className="review-form-header">
+          <h3>Ajouter un avis</h3>
+          <button className="close-btn" onClick={handleClose}>
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Votre nom</label>
+            <input
+              type="text"
+              value={formData.userName}
+              onChange={(e) => setFormData({...formData, userName: e.target.value})}
+              required
+              placeholder="Entrez votre nom"
+            />
+          </div>
+          <div className="form-group">
+            <label>Note</label>
+            <div className="rating-input">
+              {[5, 4, 3, 2, 1].map((star) => (
+                <i
+                  key={star}
+                  className={`fas fa-star ${formData.rating >= star ? 'active' : ''}`}
+                  onClick={() => setFormData({...formData, rating: star})}
+                ></i>
+              ))}
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Votre commentaire</label>
+            <textarea
+              value={formData.comment}
+              onChange={(e) => setFormData({...formData, comment: e.target.value})}
+              required
+              placeholder="Partagez votre expérience..."
+              rows="4"
+            ></textarea>
+          </div>
+          <div className="form-actions">
+            <button type="button" className="cancel-btn" onClick={handleClose}>
+              Annuler
+            </button>
+            {user ? (
+              <button type="submit" className="submit-btn">
+                Publier
+              </button>
+            ) : (
+              <p>Connectez-vous pour ajouter un avis</p>
+            )}
+          </div>
+        </form>
+      </div>
+
+      <style jsx>{`
+        .review-form-modal {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+        }
+
+        .review-form-content {
+          background: white;
+          border-radius: 15px;
+          padding: 25px;
+          width: 90%;
+          max-width: 500px;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .review-form-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+
+        .review-form-header h3 {
+          margin: 0;
+          color: #2c3e50;
+          font-size: 1.5rem;
+        }
+
+        .close-btn {
+          background: none;
+          border: none;
+          font-size: 1.2rem;
+          color: #666;
+          cursor: pointer;
+          padding: 5px;
+        }
+
+        .form-group {
+          margin-bottom: 20px;
+        }
+
+        .form-group label {
+          display: block;
+          margin-bottom: 8px;
+          color: #2c3e50;
+          font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea {
+          width: 100%;
+          padding: 12px;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          font-size: 1rem;
+          transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+          border-color: #E8092E;
+          outline: none;
+          box-shadow: 0 0 0 2px rgba(232, 9, 46, 0.1);
+        }
+
+        .rating-input {
+          display: flex;
+          flex-direction: row-reverse;
+          gap: 10px;
+        }
+
+        .rating-input i {
+          font-size: 1.5rem;
+          color: #ddd;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .rating-input i.active {
+          color: #ffd700;
+        }
+
+        .rating-input i:hover,
+        .rating-input i:hover ~ i {
+          color: #ffd700;
+        }
+
+        .form-actions {
+          display: flex;
+          gap: 15px;
+          justify-content: flex-end;
+          margin-top: 25px;
+        }
+
+        .cancel-btn,
+        .submit-btn {
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .cancel-btn {
+          background: #f8f9fa;
+          border: 1px solid #ddd;
+          color: #666;
+        }
+
+        .submit-btn {
+          background: #E8092E;
+          border: none;
+          color: white;
+        }
+
+        .cancel-btn:hover {
+          background: #e9ecef;
+        }
+
+        .submit-btn:hover {
+          background: #c7082a;
+          transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+          .review-form-content {
+            width: 95%;
+            padding: 20px;
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
 
 const ShopDetails = () => {
   const { id } = useParams();
@@ -20,22 +246,35 @@ const ShopDetails = () => {
   const [showExpertForm, setShowExpertForm] = useState(false);
   const [predictedPrice, setPredictedPrice] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [newReview, setNewReview] = useState({
+    rating: 5,
+    comment: '',
+    userName: ''
+  });
+  const [reviews, setReviews] = useState([]);
+  const { user } = useUser();
 
   useEffect(() => {
-    const fetchCarDetails = async () => {
+    const fetchData = async () => {
       try {
         const response = await ApiCarService.getCarById(id);
         setCar(response);
+        await loadReviews();
       } catch (error) {
-        console.error("Error fetching car details:", error);
-        toast.error("Error fetching car details");
+        console.error("Error fetching data:", error);
+        toast.error("Error fetching data");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCarDetails();
+    fetchData();
   }, [id]);
+
+  useEffect(() => {
+    console.log('Current user:', user);
+  }, [user]);
 
   const getPrediction = async () => {
     try {
@@ -54,6 +293,46 @@ const ShopDetails = () => {
     } catch (error) {
       console.error("Erreur lors de l'estimation:", error);
       toast.error("Erreur lors de l'estimation du prix");
+    }
+  };
+
+  const loadReviews = async () => {
+    try {
+      console.log('Loading reviews for car:', id);
+      const reviews = await ReviewService.getReviewsByCar(id);
+      console.log('Received reviews:', reviews);
+      setReviews(reviews);
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+    }
+  };
+
+  const handleReviewSubmit = async (reviewData) => {
+    try {
+      if (!user) {
+        console.error('User must be logged in to submit a review');
+        return;
+      }
+
+      const review = {
+        carId: id,
+        userId: user.id,
+        userName: user.username || user.name,
+        rating: reviewData.rating,
+        comment: reviewData.comment
+      };
+
+      console.log('Sending review data:', review);
+
+      const response = await ReviewService.addReview(review);
+      console.log('Review submitted successfully:', response);
+      
+      await loadReviews();
+      
+      setShowReviewForm(false);
+      
+    } catch (error) {
+      console.error('Error submitting review:', error);
     }
   };
 
@@ -182,7 +461,161 @@ const ShopDetails = () => {
       case 'reviews':
         return (
           <div className="reviews-content">
-            <p>Reviews coming soon...</p>
+            <div className="reviews-header">
+              <h2>Avis des clients</h2>
+              {user ? (
+                <button 
+                  className="add-review-btn"
+                  onClick={() => setShowReviewForm(true)}
+                >
+                  <i className="fas fa-plus"></i> Ajouter un avis
+                </button>
+              ) : (
+                <p>Connectez-vous pour ajouter un avis</p>
+              )}
+            </div>
+
+            <div className="reviews-list">
+              {renderReviews()}
+            </div>
+
+            <style jsx>{`
+              .reviews-content {
+                padding: 30px 0;
+              }
+
+              .reviews-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 30px;
+              }
+
+              .reviews-header h2 {
+                font-size: 1.8rem;
+                color: #2c3e50;
+                margin: 0;
+              }
+
+              .add-review-btn {
+                background: #E8092E;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+              }
+
+              .add-review-btn:hover {
+                background: #c7082a;
+                transform: translateY(-2px);
+              }
+
+              .reviews-list {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+              }
+
+              .review-card {
+                background: white;
+                border-radius: 15px;
+                padding: 20px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                transition: all 0.3s ease;
+              }
+
+              .review-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+              }
+
+              .review-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 15px;
+              }
+
+              .reviewer-info {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+              }
+
+              .reviewer-avatar {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                object-fit: cover;
+                margin-right: 12px;
+                border: 2px solid #fff;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+              }
+
+              .reviewer-details h4 {
+                margin: 0 0 5px 0;
+                color: #2c3e50;
+                font-size: 1.1rem;
+              }
+
+              .rating {
+                display: flex;
+                gap: 3px;
+              }
+
+              .rating i {
+                color: #ffd700;
+                font-size: 0.9rem;
+              }
+
+              .review-date {
+                color: #666;
+                font-size: 0.9rem;
+              }
+
+              .review-text {
+                color: #2c3e50;
+                line-height: 1.6;
+                margin: 0;
+              }
+
+              @media (max-width: 768px) {
+                .reviews-header {
+                  flex-direction: column;
+                  gap: 15px;
+                  align-items: flex-start;
+                }
+
+                .reviews-header h2 {
+                  font-size: 1.5rem;
+                }
+
+                .add-review-btn {
+                  width: 100%;
+                  justify-content: center;
+                }
+
+                .review-header {
+                  flex-direction: column;
+                  gap: 10px;
+                }
+
+                .review-date {
+                  margin-left: 55px;
+                }
+
+                .reviewer-avatar {
+                  width: 32px;
+                  height: 32px;
+                }
+              }
+            `}</style>
           </div>
         );
       default:
@@ -193,6 +626,39 @@ const ShopDetails = () => {
           </div>
         );
     }
+  };
+
+  const renderReviews = () => {
+    return reviews.map((review) => (
+        <div key={review.id} className="review-card">
+            <div className="review-header">
+                <div className="reviewer-info">
+                    <img 
+                        src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp"
+                        alt={`${review.userName}'s avatar`}
+                        className="reviewer-avatar"
+                    />
+                    <div className="reviewer-details">
+                        <h4>{review.userName}</h4>
+                        <div className="rating">
+                            {[...Array(5)].map((_, index) => (
+                                <span 
+                                    key={index}
+                                    className={`star ${index < review.rating ? 'filled' : ''}`}
+                                >
+                                    ★
+                                </span>
+                            ))}
+                        </div>
+                        <span className="review-date">
+                            {new Date(review.createdAt).toLocaleDateString()}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <p className="review-comment">{review.comment}</p>
+        </div>
+    ));
   };
 
   return (
@@ -911,6 +1377,72 @@ const ShopDetails = () => {
           padding: 40px 0;
         }
 
+        .reviewer-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          object-fit: cover;
+          margin-right: 12px;
+          border: 2px solid #fff;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .review-card {
+          background: white;
+          border-radius: 8px;
+          padding: 16px;
+          margin-bottom: 16px;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .review-header {
+          display: flex;
+          align-items: flex-start;
+          margin-bottom: 12px;
+        }
+
+        .reviewer-info {
+          display: flex;
+          align-items: center;
+        }
+
+        .reviewer-details {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .reviewer-details h4 {
+          margin: 0;
+          font-size: 16px;
+          color: #333;
+        }
+
+        .rating {
+          display: flex;
+          gap: 2px;
+          margin: 4px 0;
+        }
+
+        .star {
+          color: #ddd;
+          font-size: 18px;
+        }
+
+        .star.filled {
+          color: #ffd700;
+        }
+
+        .review-date {
+          font-size: 12px;
+          color: #666;
+        }
+
+        .review-comment {
+          margin: 0;
+          color: #444;
+          line-height: 1.5;
+        }
+
         @media (max-width: 768px) {
           .carousel-slide img {
             height: 300px;
@@ -983,6 +1515,15 @@ const ShopDetails = () => {
             padding: 10px 15px;
             font-size: 0.85rem;
           }
+
+          .review-card {
+            padding: 12px;
+          }
+
+          .reviewer-avatar {
+            width: 32px;
+            height: 32px;
+          }
         }
       `}</style>
 
@@ -992,6 +1533,12 @@ const ShopDetails = () => {
         show={showExpertForm}
         handleClose={() => setShowExpertForm(false)}
         carId={car.id}
+      />
+
+      <ReviewForm 
+        show={showReviewForm}
+        handleClose={() => setShowReviewForm(false)}
+        onSubmit={handleReviewSubmit}
       />
     </motion.section>
   );
