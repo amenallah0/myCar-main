@@ -28,9 +28,11 @@ import PersonIcon from '@mui/icons-material/Person';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
 import MessageIcon from '@mui/icons-material/Message';
 import DescriptionIcon from '@mui/icons-material/Description';
+import DeleteIcon from '@mui/icons-material/Delete';
 import HeaderFive from './HeaderFive';
 
 const ExpertInbox = () => {
+  const [allRequests, setAllRequests] = useState([]);
   const [completedRequests, setCompletedRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -67,21 +69,22 @@ const ExpertInbox = () => {
   };
 
   useEffect(() => {
-    const fetchCompletedRequests = async () => {
+    const fetchRequests = async () => {
       try {
         const response = await axios.get(`http://localhost:8081/api/expertise-requests/user/${user.id}`);
+        setAllRequests(response.data);
         const completedOnly = response.data.filter(request => request.status === 'COMPLETED');
         setCompletedRequests(completedOnly);
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching completed requests:', err);
+        console.error('Error fetching requests:', err);
         setError('Erreur lors du chargement des rapports d\'expertise');
         setLoading(false);
       }
     };
 
     if (user?.id) {
-      fetchCompletedRequests();
+      fetchRequests();
     }
   }, [user]);
 
@@ -121,6 +124,35 @@ const ExpertInbox = () => {
       } else {
         alert('Erreur lors du téléchargement du rapport: ' + (err.message || 'Erreur inconnue'));
       }
+    }
+  };
+
+  const handleDeleteReport = async (requestId) => {
+    try {
+      // Première étape : supprimer le rapport d'expert
+      await axios.delete(`http://localhost:8081/api/expert-reports/request/${requestId}`);
+      
+      // Deuxième étape : supprimer la demande d'expertise
+      await axios.delete(`http://localhost:8081/api/expertise-requests/${requestId}`);
+      
+      // Mettre à jour l'interface utilisateur
+      const updatedRequests = allRequests.filter(request => request.id !== requestId);
+      setAllRequests(updatedRequests);
+      const updatedCompletedRequests = completedRequests.filter(request => request.id !== requestId);
+      setCompletedRequests(updatedCompletedRequests);
+
+      // Afficher un message de succès
+      alert('Le rapport a été supprimé avec succès');
+    } catch (err) {
+      console.error('Error deleting report:', err);
+      alert('Erreur lors de la suppression du rapport: ' + (err.response?.data?.message || err.message || 'Erreur inconnue'));
+    }
+  };
+
+  // Ajouter une confirmation avant la suppression
+  const confirmAndDeleteReport = (requestId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce rapport ? Cette action est irréversible.')) {
+      handleDeleteReport(requestId);
     }
   };
 
@@ -357,41 +389,70 @@ const ExpertInbox = () => {
                               pt: 2,
                               borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`
                             }}>
-                              <Chip 
-                                label="Complété"
-                                color="success"
-                                size="small"
-                                sx={{ 
-                                  borderRadius: '6px',
-                                  fontWeight: 500,
-                                  backgroundColor: alpha(theme.palette.success.main, 0.1),
-                                  color: theme.palette.success.dark,
-                                  '& .MuiChip-label': { px: 2 }
-                                }}
-                              />
+                              <Box sx={{ display: 'flex', gap: 1 }}>
+                                <Chip 
+                                  label={request.status === 'COMPLETED' ? 'Complété' : 'En cours'}
+                                  color={request.status === 'COMPLETED' ? 'success' : 'warning'}
+                                  size="small"
+                                  sx={{ 
+                                    borderRadius: '6px',
+                                    fontWeight: 500,
+                                    backgroundColor: request.status === 'COMPLETED' 
+                                      ? alpha(theme.palette.success.main, 0.1)
+                                      : alpha(theme.palette.warning.main, 0.1),
+                                    color: request.status === 'COMPLETED' 
+                                      ? theme.palette.success.dark
+                                      : theme.palette.warning.dark,
+                                    '& .MuiChip-label': { px: 2 }
+                                  }}
+                                />
+                              </Box>
                               
-                              {request.report.fileData && (
-                                <Tooltip title={`Télécharger ${request.report.fileName || 'le rapport'}`}>
+                              <Box sx={{ display: 'flex', gap: 1 }}>
+                                <Tooltip title="Supprimer le rapport">
                                   <Button
-                                    variant="contained"
+                                    variant="outlined"
                                     size="small"
-                                    startIcon={<DownloadIcon />}
-                                    onClick={() => handleDownloadReport(request.id)}
+                                    color="error"
+                                    startIcon={<DeleteIcon />}
+                                    onClick={() => confirmAndDeleteReport(request.id)}
                                     sx={{ 
                                       borderRadius: '8px',
                                       textTransform: 'none',
-                                      boxShadow: 'none',
-                                      px: 2,
-                                      background: 'linear-gradient(135deg, #ef4444 0%, #991b1b 100%)',
+                                      borderColor: alpha('#ef4444', 0.3),
                                       '&:hover': {
-                                        boxShadow: `0 4px 12px ${alpha('#ef4444', 0.3)}`,
+                                        backgroundColor: alpha('#ef4444', 0.05),
+                                        borderColor: '#ef4444',
                                       }
                                     }}
                                   >
-                                    Télécharger
+                                    Supprimer
                                   </Button>
                                 </Tooltip>
-                              )}
+                                
+                                {request.report.fileData && request.status === 'COMPLETED' && (
+                                  <Tooltip title={`Télécharger ${request.report.fileName || 'le rapport'}`}>
+                                    <Button
+                                      variant="contained"
+                                      size="small"
+                                      startIcon={<DownloadIcon />}
+                                      onClick={() => handleDownloadReport(request.id)}
+                                      sx={{ 
+                                        borderRadius: '8px',
+                                        textTransform: 'none',
+                                        boxShadow: 'none',
+                                        px: 2,
+                                        background: 'linear-gradient(135deg, #ef4444 0%, #991b1b 100%)',
+                                        '&:hover': {
+                                          boxShadow: `0 4px 12px ${alpha('#ef4444', 0.3)}`,
+                                        }
+                                      }}
+                                    >
+                                      Télécharger
+                                    </Button>
+                                  </Tooltip>
+                                )}
+                              </Box>
                             </Box>
                           </Paper>
                         </Box>
