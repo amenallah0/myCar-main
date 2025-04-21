@@ -109,6 +109,12 @@ const ExpertiseRequests = () => {
         icon: <FaTimes className="status-icon" />, 
         text: 'Refusée',
         className: 'status-badge-rejected'
+      },
+      COMPLETED: {
+        bg: 'info',
+        icon: <FaFileAlt className="status-icon" />,
+        text: 'Rapport soumis',
+        className: 'status-badge-completed'
       }
     };
 
@@ -290,13 +296,23 @@ const ExpertiseRequests = () => {
                           <span className="button-text">Voir l'annonce</span>
                         </Link>
                         
-                        {request.status === 'ACCEPTED' && (
+                        {request.status === 'ACCEPTED' && !request.report && (
                           <Link 
                             to={`/expert-report/${request.id}`}
                             className="btn btn-outline-info action-button report-button"
                           >
                             <FaFileAlt className="button-icon" />
                             <span className="button-text">Rédiger le rapport</span>
+                          </Link>
+                        )}
+
+                        {request.status === 'COMPLETED' && request.report && (
+                          <Link 
+                            to={`/view-report/${request.id}`}
+                            className="btn btn-outline-secondary action-button view-report-button"
+                          >
+                            <FaFileAlt className="button-icon" />
+                            <span className="button-text">Voir le rapport</span>
                           </Link>
                         )}
                       </div>
@@ -460,6 +476,12 @@ const ExpertiseRequests = () => {
               background-color: #f8d7da;
               color: #721c24;
               border: 1px solid #f5c6cb;
+            }
+
+            .status-badge-completed {
+              background-color: #cff4fc;
+              color: #055160;
+              border: 1px solid #b6effb;
             }
 
             .status-icon {
@@ -690,6 +712,18 @@ const ExpertiseRequests = () => {
             .report-button:hover {
               background-color: #17a2b8;
               color: white;
+            }
+
+            .view-report-button {
+              background-color: transparent;
+              border-color: #6c757d;
+              color: #6c757d;
+            }
+
+            .view-report-button:hover {
+              background-color: #6c757d;
+              color: white;
+              box-shadow: 0 4px 12px rgba(108, 117, 125, 0.2);
             }
           `}</style>
         </Container>

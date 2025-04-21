@@ -31,6 +31,7 @@ import MySentRequests from './components/MySentRequests';
 import PaymentSuccess from './components/PaymentSuccess';
 import PaymentFailed from './components/PaymentFailed';
 import ExpertInbox from './components/ExpertInbox';
+import ViewReport from './components/ViewReport';
 
 
 function App() {
@@ -67,6 +68,7 @@ function App() {
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-failed" element={<PaymentFailed />} />
           <Route path="/expert-inbox" element={<ExpertInbox />} />
+          <Route path="/view-report/:id" element={<ViewReport />} />
         </Routes>
       </BrowserRouter>
     </UserProvider>
