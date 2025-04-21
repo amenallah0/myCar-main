@@ -69,7 +69,7 @@ const ExpertInbox = () => {
   useEffect(() => {
     const fetchCompletedRequests = async () => {
       try {
-        const response = await axios.get(`http://localhost:8081/api/expertise-requests/expert/${user.id}`);
+        const response = await axios.get(`http://localhost:8081/api/expertise-requests/user/${user.id}`);
         const completedOnly = response.data.filter(request => request.status === 'COMPLETED');
         setCompletedRequests(completedOnly);
         setLoading(false);

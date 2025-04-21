@@ -102,11 +102,14 @@ export default function ProfilePage() {
   }, [userId, navigate]);
 
   useEffect(() => {
-    if (user?.id && user?.role === 'EXPERT') {
-      fetchExpertiseCount();
-      fetchReportsCount();
+    if (user?.id) {
+      const loadData = async () => {
+        await fetchExpertiseCount();
+        await fetchReportsCount();
+      };
+      loadData();
     }
-  }, [user]);
+  }, [user?.id]);
 
   const fetchCarDetails = async (carId) => {
     try {
@@ -227,12 +230,64 @@ export default function ProfilePage() {
 
   const fetchReportsCount = async () => {
     try {
-      const response = await axios.get(`http://localhost:8081/api/expertise-requests/expert/${user.id}`);
-      const completedReports = response.data.filter(request => request.status === 'COMPLETED');
+      if (!user?.id) {
+        console.log('No user ID available');
+        return;
+      }
+
+      // Endpoint unique pour récupérer les rapports d'expertise
+      const response = await axios.get(`http://localhost:8081/api/expertise-requests/user/${user.id}`);
+      
+      console.log('Raw response data:', response.data);
+      
+      // Filtrer les rapports complétés avec un rapport attaché
+      const completedReports = response.data.filter(request => {
+        const hasReport = request.report !== null && request.report !== undefined;
+        const isCompleted = request.status === 'COMPLETED';
+        
+        console.log('Request:', {
+          id: request.id,
+          status: request.status,
+          hasReport: hasReport,
+          isCompleted: isCompleted
+        });
+        
+        return isCompleted && hasReport;
+      });
+      
+      console.log('Completed reports:', completedReports);
+      
       setReportsCount(completedReports.length);
+      
     } catch (error) {
       console.error('Error fetching reports count:', error);
       toast.error('Erreur lors du chargement du nombre de rapports');
+    }
+  };
+
+  const refreshReportsCount = async () => {
+    try {
+      const endpoint = user?.role === 'EXPERT' 
+        ? `http://localhost:8081/api/expertise-requests/expert/${user.id}`
+        : `http://localhost:8081/api/expertise-requests/user/${user.id}`;
+        
+      const response = await axios.get(endpoint);
+      
+      // Log pour debug
+      console.log('Reports data:', response.data);
+      
+      const completedReports = response.data.filter(request => {
+        // Log pour debug
+        console.log('Request status:', request.status);
+        return request.status === 'COMPLETED' && request.report !== null;
+      });
+      
+      // Log pour debug
+      console.log('Completed reports count:', completedReports.length);
+      
+      setReportsCount(completedReports.length);
+    } catch (error) {
+      console.error('Error refreshing reports count:', error);
     }
   };
 
@@ -340,6 +395,14 @@ export default function ProfilePage() {
                 >
                   Mes demandes envoyées
                 </button>
+                {reportsCount > 0 && (
+                  <button 
+                    className="inbox-btn" 
+                    onClick={() => navigate('/expert-inbox')}
+                  >
+                    Boîte de réception ({reportsCount})
+                  </button>
+                )}
                 <button 
                   className="become-expert-btn" 
                   onClick={() => setShowModal(true)}
