@@ -20,11 +20,21 @@ import ReviewService from '../services/ReviewService';
 import { useUser } from '../contexts/userContext';
 
 const ReviewForm = ({ show, handleClose, onSubmit }) => {
+  const { user } = useUser();
   const [formData, setFormData] = useState({
     rating: 5,
     comment: '',
-    userName: ''
+    userName: user ? user.username : ''
   });
+
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        userName: user.username
+      }));
+    }
+  }, [user]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -32,8 +42,6 @@ const ReviewForm = ({ show, handleClose, onSubmit }) => {
     handleClose();
     setFormData({ rating: 5, comment: '', userName: '' });
   };
-
-  const { user } = useUser();
 
   if (!show) return null;
 
@@ -317,7 +325,7 @@ const ShopDetails = () => {
       const review = {
         carId: id,
         userId: user.id,
-        userName: user.username || user.name,
+        userName: user.username,
         rating: reviewData.rating,
         comment: reviewData.comment
       };
@@ -330,11 +338,22 @@ const ShopDetails = () => {
       await loadReviews();
       
       setShowReviewForm(false);
+      toast.success('Avis ajouté avec succès');
       
     } catch (error) {
       console.error('Error submitting review:', error);
+      toast.error('Erreur lors de l\'ajout de l\'avis');
     }
   };
+
+  useEffect(() => {
+    if (reviews.length > 0) {
+        console.log('Reviews data:', reviews);
+        reviews.forEach(review => {
+            console.log('Review date:', review.createdAt, 'formatted:', new Date(review.createdAt).toLocaleString('fr-FR'));
+        });
+    }
+  }, [reviews]);
 
   if (loading) {
     return (
@@ -651,7 +670,17 @@ const ShopDetails = () => {
                             ))}
                         </div>
                         <span className="review-date">
-                            {new Date(review.createdAt).toLocaleDateString()}
+                            {review.createdAt ? (
+                                new Date(review.createdAt).toLocaleString('fr-FR', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                })
+                            ) : (
+                                'Date non disponible'
+                            )}
                         </span>
                     </div>
                 </div>
