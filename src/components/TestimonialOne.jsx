@@ -1,6 +1,16 @@
-import React from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, FreeMode, Thumbs, EffectFade } from "swiper";
+import React from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+
+// Styles CSS
+import 'swiper/css';
+import 'swiper/css/free-mode';
+import 'swiper/css/navigation';
+import 'swiper/css/thumbs';
+import 'swiper/css/effect-fade';
+
+// Une seule importation des modules
+import { FreeMode, Navigation, Thumbs, EffectFade } from 'swiper/modules';
+
 const TestimonialOne = () => {
   return (
     <div
@@ -79,7 +89,7 @@ const TestimonialOne = () => {
                           <p className="testi-card_text">
                           Our website is designed with you in mind, 
                           offering easy navigation and intuitive search features to help 
-                          you find what you’re looking for without hassle.
+                          you find what you're looking for without hassle.
                           </p>
                           
                         </div>
@@ -135,7 +145,7 @@ const TestimonialOne = () => {
                           <p className="testi-card_text">
                           Our dedicated support team is always ready to assist you. 
                           Whether you have questions about a listing or need help with the buying process, 
-                          we’re here for you.
+                          we're here for you.
                           </p>
                           
                         </div>

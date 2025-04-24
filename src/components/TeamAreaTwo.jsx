@@ -1,7 +1,12 @@
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, FreeMode, Thumbs, EffectFade } from "swiper";
+import { Navigation, FreeMode, Thumbs, EffectFade } from "swiper/modules";
 import { Link } from "react-router-dom";
+import 'swiper/css';
+import 'swiper/css/free-mode';
+import 'swiper/css/navigation';
+import 'swiper/css/thumbs';
+import 'swiper/css/effect-fade';
 
 const TeamAreaTwo = () => {
   return (

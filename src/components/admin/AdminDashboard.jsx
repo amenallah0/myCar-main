@@ -28,13 +28,13 @@ import { FaTrash } from 'react-icons/fa';
 import { FaBell } from 'react-icons/fa';
 import { formatDistanceToNow } from 'date-fns';
 import { useNotification } from '../../contexts/NotificationContext';
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/swiper-bundle.min.css";
-import SwiperCore, { Autoplay, Pagination, Navigation } from "swiper";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
+import 'swiper/css/autoplay';
+import { Autoplay, Pagination, Navigation } from 'swiper/modules';
 import moment from "moment";
-
-// Register Swiper modules
-SwiperCore.use([Autoplay, Pagination, Navigation]);
 
 // Styled Components
 const StyledDashboard = styled.div`
@@ -826,6 +826,27 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleUser = async (userId) => {
+    try {
+      const response = await fetch(`/api/users/${userId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          // Gérer le cas où l'utilisateur n'existe pas
+          console.error(`L'utilisateur avec l'ID ${userId} n'existe pas`);
+          // Afficher un message à l'utilisateur
+          // Par exemple avec une notification toast
+          return;
+        }
+        throw new Error('Erreur lors de la récupération de l\'utilisateur');
+      }
+      const userData = await response.json();
+      // Traiter les données de l'utilisateur
+    } catch (error) {
+      console.error('Erreur:', error);
+      // Gérer l'erreur
+    }
+  };
+
   return (
     <StyledDashboard>
       <ToastContainer />
@@ -880,11 +901,26 @@ const AdminDashboard = () => {
                 />
                 {annonces && annonces.length > 0 && (
                   <div className="mt-4">
-                    <AnnonceCarousel 
-                      annonces={annonces}
-                      autoplay={true}
-                      interval={5000}
-                    />
+                    <Swiper
+                      modules={[Autoplay, Pagination, Navigation]}
+                      spaceBetween={30}
+                      centeredSlides={true}
+                      autoplay={{
+                        delay: 2500,
+                        disableOnInteraction: false,
+                      }}
+                      pagination={{
+                        clickable: true,
+                      }}
+                      navigation={true}
+                      className="mySwiper"
+                    >
+                      {annonces.map((annonce) => (
+                        <SwiperSlide key={annonce.id}>
+                          <AnnonceCarousel annonces={[annonce]} />
+                        </SwiperSlide>
+                      ))}
+                    </Swiper>
                   </div>
                 )}
               </>

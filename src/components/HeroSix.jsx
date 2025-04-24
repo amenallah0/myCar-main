@@ -2,15 +2,12 @@ import React, { useEffect, useState } from "react";
 import ApiCarService from "../services/apiCarServices"; // Adjust the import path as needed
 import { Link } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/swiper-bundle.min.css"; // Import main Swiper styles
-import SwiperCore, { Autoplay, Pagination, Navigation } from "swiper"; // Import the Autoplay and Navigation modules
-import moment from "moment"; // Import moment.js to format the date
+import moment from 'moment'; // Ajoutez cet import
 import "swiper/css";
-import "swiper/css/navigation";
 import "swiper/css/pagination";
+import "swiper/css/navigation";
 import "swiper/css/autoplay";
-// Register the Autoplay, Pagination, and Navigation modules
-SwiperCore.use([Autoplay, Pagination, Navigation]);
+import { Autoplay, Pagination, Navigation } from 'swiper/modules';
 
 const HeroSix = ({ hasAnnonces }) => {
   const [cars, setCars] = useState([]);
