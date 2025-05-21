@@ -157,6 +157,8 @@ const containerStyle = {
     overflow: 'hidden',
     borderRadius: '15px',
     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+    backgroundColor: 'transparent',
+    border: 'none',
 };
 
 const carouselStyle = {

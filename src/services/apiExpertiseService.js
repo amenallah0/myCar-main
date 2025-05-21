@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { axiosInstance } from './apiUserServices';
 
 const API_URL = 'http://localhost:8081/api';
 const EXPERTISE_REQUEST_URL = 'http://localhost:8081/api/expertise-requests';
@@ -41,6 +42,24 @@ const apiExpertiseService = {
             throw error;
         }
     },
+
+    approveRequest: (id) => {
+        return axiosInstance.put(`/expertise-requests/${id}/accept`)
+          .then(response => response.data)
+          .catch(error => {
+            console.error('Error in approveRequest:', error);
+            throw error;
+          });
+      },
+    
+      rejectRequest: (id) => {
+        return axiosInstance.put(`/expertise-requests/${id}/reject`)
+          .then(response => response.data)
+          .catch(error => {
+            console.error('Error in rejectRequest:', error);
+            throw error;
+          });
+      },
 
     getExpertiseRequests() {
         return axios.get(EXPERTISE_REQUEST_URL)

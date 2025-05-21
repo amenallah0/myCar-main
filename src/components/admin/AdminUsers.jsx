@@ -174,10 +174,6 @@ const AdminUsers = ({ users = [], onDelete, onEdit, onCreate, loading, error }) 
           <FaUsers size={24} />
           Users Management
         </Title>
-        <Button variant="primary" onClick={onCreate}>
-          <FaUserPlus />
-          Add New User
-        </Button>
       </Header>
 
       {users.length === 0 ? (

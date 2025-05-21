@@ -8,7 +8,7 @@ const HeaderFive = () => {
   const [active, setActive] = useState(false);
   const [scroll, setScroll] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
-  const { user, logout } = useUser();
+  const { user, isAuthenticated, logout } = useUser();
   const navigate = useNavigate();
   const { notifications } = useNotification();
   const notificationCount = notifications.length;
@@ -110,13 +110,17 @@ const HeaderFive = () => {
       marginRight: '20px',
     };
 
+    console.log("HeaderFive - user:", user);
+    console.log("HeaderFive - isAuthenticated:", isAuthenticated);
+    console.log("HeaderFive - user.role:", user?.role);
+
     return (
       <div className="header-right-element">
         <ul style={{ display: 'flex', alignItems: 'center', margin: 0, padding: 0, listStyle: 'none' }}>
           <li style={{ position: 'relative', marginRight: '20px' }}>
-            {user ? (
+            {isAuthenticated && user ? (
               <div style={{ display: 'flex', alignItems: 'center' }}>
-                {user.role === 'ADMIN' && (
+                {(user.role === 'ROLE_ADMIN' || user.role === 'ADMIN') && (
                   <Link 
                     to="/admin" 
                     style={adminButtonStyle}

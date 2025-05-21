@@ -14,13 +14,13 @@ import {
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignOutAlt, faCheck } from '@fortawesome/free-solid-svg-icons';
-import ApiService from '../services/apiUserServices';
+import { getExpertRequestsForExpert, getUserProfile, updateUserProfile } from '../services/apiUserServices';
 import ApiCarService from '../services/apiCarServices';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useUser } from '../contexts/userContext';
-import { useNavigate } from 'react-router-dom';
-import ApiExpertRequestService from '../services/apiExpertRequestServices';
+import { useNavigate, useParams } from 'react-router-dom';
+import apiExpertRequestService from '../services/apiExpertRequestServices';
 import FlouciService from '../services/flouciService';
 import { Swiper, SwiperSlide } from "swiper/react";
 // Import Swiper styles
@@ -29,34 +29,17 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/autoplay";
 import axios from 'axios';
+import TokenService from '../services/TokenService';
 
-export default function ProfilePage() {
-  const { user: contextUser, logout } = useUser();
+const Profile = () => {
+  const { username } = useParams();
+  const { user, logout, setUser } = useUser();
   const navigate = useNavigate();
-  const userId = contextUser?.id;
 
-  const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [selectedCar, setSelectedCar] = useState(null);
-  const [isEditing, setIsEditing] = useState({
-    username: false,
-    email: false,
-    phone: false,
-    mobile: false,
-    address: false,
-  });
-  const [editedUser, setEditedUser] = useState({
-    username: '',
-    email: '',
-    phone: '',
-    mobile: '',
-    address: '',
-    createdAt: '',
-    role: '',
-    firstName: '',
-    lastName: '',
-    birthDate: '',
-    bio: '',
-  });
+  const [isEditing, setIsEditing] = useState({});
+  const [editedUser, setEditedUser] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [expertFormData, setExpertFormData] = useState({
     specialization: '',
@@ -68,47 +51,57 @@ export default function ProfilePage() {
   const [carsPerPage] = useState(4); // Number of cars to display per page
   const [isDisconnected, setIsDisconnected] = useState(false); // State for disconnect functionality
   const [error, setError] = useState(null);
-  const [expertiseCount, setExpertiseCount] = useState(0);
+  const [totalExpertiseRequests, setTotalExpertiseRequests] = useState(0);
+  const [completedExpertises, setCompletedExpertises] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [reportsCount, setReportsCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [expertiseCountReceived, setExpertiseCountReceived] = useState(0);
 
   useEffect(() => {
-    if (userId) {
-      const fetchUserData = async () => {
-        try {
-          const userData = await ApiService.getUserById(userId);
-          if (userData) {
-            setUser(userData);
-            setEditedUser(userData);
-          } else {
-            setError('User data not found');
-            toast.error('User data not found');
-            navigate('/');
-          }
-        } catch (error) {
-          setError(error.message);
-          console.error('Error fetching user data:', error);
-          toast.error('Error loading user profile');
-          navigate('/');
+    const loadUserProfile = async () => {
+      try {
+        if (!username && user) {
+          navigate(`/profile/${user.username}`, { replace: true });
+          return;
         }
-      };
+        // Charge le profil depuis le backend
+        const profile = await getUserProfile();
+        setUserProfile(profile);
+        setEditedUser(profile);
+        setLoading(false);
 
-      fetchUserData();
-    } else {
-      setError('No user ID found');
-      toast.error('Please login to view profile');
-      navigate('/signin');
-    }
-  }, [userId, navigate]);
+        // Statistiques
+        if (profile.role === 'ROLE_EXPERT') {
+          fetchExpertiseStats(profile.id);
+          }
+        fetchReportsCount(profile.id, profile.role);
+      } catch (error) {
+        setError(error.message);
+        setLoading(false);
+      }
+    };
+    loadUserProfile();
+  }, [username, user]);
 
   useEffect(() => {
-    if (user?.id) {
-      const loadData = async () => {
-        await fetchExpertiseCount();
-        await fetchReportsCount();
-      };
-      loadData();
-    }
+    const fetchUserCars = async () => {
+      try {
+        if (user?.id) {
+          const cars = await ApiCarService.getCarsByUserId(user.id);
+          setUserProfile((prev) => ({
+            ...prev,
+            cars: cars
+          }));
+          // Log pour debug
+          console.log('Fetched cars from API:', cars);
+        }
+      } catch (error) {
+        console.error('Error fetching user cars:', error);
+      }
+    };
+
+    fetchUserCars();
   }, [user?.id]);
 
   const fetchCarDetails = async (carId) => {
@@ -128,14 +121,30 @@ export default function ProfilePage() {
 
   const handleSaveClick = async (field) => {
     try {
-      const updatedUser = await ApiService.updateUser(userId, {
-        [field]: editedUser[field],
-      });
-      setUser((prev) => ({ ...prev, [field]: editedUser[field] }));
-      setEditedUser((prev) => ({ ...prev, [field]: updatedUser[field] }));
+      await updateUserProfile(userProfile.id, { [field]: editedUser[field] });
+
+      if (field === 'email') {
+        toast.success('Email modifié. Veuillez vous reconnecter.');
+        logout();
+        navigate('/signin');
+        return;
+      }
+
+      toast.success('Profil mis à jour !');
+
+      // Ensuite, tente de rafraîchir le profil
+      try {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const refreshedUser = await getUserProfile();
+        setUserProfile(refreshedUser);
+        setEditedUser(refreshedUser);
       setIsEditing((prev) => ({ ...prev, [field]: false }));
+      } catch (refreshError) {
+        console.error('Erreur lors du rafraîchissement du profil:', refreshError);
+        toast.error('Erreur lors du rafraîchissement du profil');
+      }
     } catch (error) {
-      console.error('Error updating user data:', error);
+      toast.error('Erreur lors de la mise à jour');
     }
   };
 
@@ -143,10 +152,10 @@ export default function ProfilePage() {
     try {
       await ApiCarService.deleteCar(carId);
       const updatedUser = {
-        ...user,
-        cars: user.cars.filter((car) => car.id !== carId),
+        ...userProfile,
+        cars: userProfile.cars.filter((car) => car.id !== carId),
       };
-      setUser(updatedUser);
+      setUserProfile(updatedUser);
       toast.success('Car deleted successfully');
     } catch (error) {
       console.error('Error deleting car:', error);
@@ -176,9 +185,9 @@ export default function ProfilePage() {
       formData.append('experience', expertFormData.experience);
       formData.append('currentPosition', expertFormData.currentPosition);
       formData.append('diploma', expertFormData.diploma);
-      formData.append('userId', userId);
+      formData.append('userId', userProfile.id);
 
-      await ApiExpertRequestService.createRequest(formData);
+      await apiExpertRequestService.createRequest(formData);
       setShowModal(false);
       toast.success('Votre demande d\'expert a été envoyée avec succès');
     } catch (error) {
@@ -195,13 +204,13 @@ export default function ProfilePage() {
   // Pagination
   const indexOfLastCar = currentPage * carsPerPage;
   const indexOfFirstCar = indexOfLastCar - carsPerPage;
-  const currentCars = user?.cars ? user.cars.slice(indexOfFirstCar, indexOfLastCar) : [];
+  const currentCars = userProfile?.cars ? userProfile.cars.slice(indexOfFirstCar, indexOfLastCar) : [];
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   // Fonction pour gérer le clic sur le bouton d'expertise
   const handleExpertiseButton = () => {
-    if (user.role === 'EXPERT') {
+    if (user.role === 'ROLE_EXPERT') {
       // Rediriger vers la page des demandes d'expertise
       navigate('/expertise-requests');
     } else {
@@ -211,63 +220,126 @@ export default function ProfilePage() {
   };
 
   const handleViewExpertRequests = () => {
-    navigate('/my-expertise-requests');
-  };
-
-  const fetchExpertiseCount = async () => {
-    try {
-      const response = await fetch(`http://localhost:8081/api/expertise-requests/expert/${user.id}`);
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement des expertises');
-      }
-      const data = await response.json();
-      setExpertiseCount(data.length);
-    } catch (error) {
-      console.error('Error fetching expertise count:', error);
-      toast.error('Erreur lors du chargement du nombre d\'expertises');
+    if (user?.role === 'ROLE_EXPERT') {
+      navigate('/expertise-requests');
     }
   };
 
-  const fetchReportsCount = async () => {
+  const fetchExpertiseStats = async (userId) => {
     try {
-      if (!user?.id) {
+      if (!userId) {
         console.log('No user ID available');
         return;
       }
-
-      // Endpoint unique pour récupérer les rapports d'expertise
-      const response = await axios.get(`http://localhost:8081/api/expertise-requests/user/${user.id}`);
       
-      console.log('Raw response data:', response.data);
+      console.log('Fetching expertise stats for expert:', userId);
+      console.log('User role:', user.role);
+      console.log('User token:', TokenService.getLocalAccessToken());
       
-      // Filtrer les rapports complétés avec un rapport attaché
-      const completedReports = response.data.filter(request => {
-        const hasReport = request.report !== null && request.report !== undefined;
-        const isCompleted = request.status === 'COMPLETED';
+      const requests = await getExpertRequestsForExpert(userId);
+      console.log('Received expertise requests:', requests);
+      
+      if (Array.isArray(requests)) {
+        // Nombre total de demandes
+        const total = requests.length;
+        console.log('Setting total requests to:', total);
+        setTotalExpertiseRequests(total);
         
-        console.log('Request:', {
-          id: request.id,
-          status: request.status,
-          hasReport: hasReport,
-          isCompleted: isCompleted
-        });
+        // Nombre d'expertises complétées avec rapport
+        const completed = requests.filter(req => {
+          const isCompleted = req.status === 'COMPLETED';
+          const hasReport = req.report != null;
+          console.log('Analyzing request:', {
+            id: req.id,
+            status: req.status,
+            isCompleted,
+            hasReport,
+            reportDetails: req.report
+          });
+          return isCompleted && hasReport;
+        }).length;
         
-        return isCompleted && hasReport;
-      });
-      
-      console.log('Completed reports:', completedReports);
-      
-      setReportsCount(completedReports.length);
-      
+        console.log('Setting completed expertises to:', completed);
+        setCompletedExpertises(completed);
+        
+        // Vérification après la mise à jour
+        setTimeout(() => {
+          console.log('Current state values:', {
+            totalRequests: totalExpertiseRequests,
+            completedExpertises: completedExpertises
+          });
+        }, 0);
+        
+      } else {
+        console.warn('Received invalid response format:', requests);
+        console.log('Setting counts to 0');
+        setTotalExpertiseRequests(0);
+        setCompletedExpertises(0);
+      }
     } catch (error) {
-      console.error('Error fetching reports count:', error);
-      toast.error('Erreur lors du chargement du nombre de rapports');
+      console.error('Error fetching expertise stats:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      setTotalExpertiseRequests(0);
+      setCompletedExpertises(0);
     }
   };
+  
+  const fetchReportsCount = async (userId, role) => {
+    try {
+        if (!userId) {
+            console.log('No user ID available');
+            return;
+        }
+        console.log('Fetching reports for user:', userId);
+
+        const response = await apiExpertRequestService.getUserRequests(userId);
+        console.log('Raw response data:', response);
+        
+        // Vérification détaillée des données
+        if (Array.isArray(response)) {
+            response.forEach((request, index) => {
+                console.log(`Request ${index + 1} details:`, {
+                    id: request.id,
+                    status: request.status,
+                    expert: request.expert,
+                    car: request.car,
+                    report: request.report,
+                    requestDate: request.requestDate
+                });
+            });
+            
+            const completedReports = response.filter(request => {
+                const hasReport = request.report !== null && request.report !== undefined;
+                const isCompleted = request.status === 'COMPLETED';
+                
+                console.log(`Request ${request.id} analysis:`, {
+                    hasReport,
+                    isCompleted,
+                    status: request.status
+                });
+                
+                return isCompleted && hasReport;
+            });
+            
+            console.log('Completed reports:', completedReports);
+            setReportsCount(completedReports.length);
+        } else {
+            console.warn('Response is not an array:', response);
+        }
+    } catch (error) {
+        console.error('Error fetching reports count:', error);
+        console.error('Full error object:', error);
+        toast.error('Erreur lors du chargement du nombre de rapports');
+    }
+};
 
   const refreshReportsCount = async () => {
     try {
-      const endpoint = user?.role === 'EXPERT' 
+      const endpoint = user?.role === 'ROLE_EXPERT' 
         ? `http://localhost:8081/api/expertise-requests/expert/${user.id}`
         : `http://localhost:8081/api/expertise-requests/user/${user.id}`;
         
@@ -290,13 +362,22 @@ export default function ProfilePage() {
       console.error('Error refreshing reports count:', error);
     }
   };
+  const fetchExpertReceivedCount = async () => {
+    try {
+      if (user?.role === 'ROLE_EXPERT') {
+        await fetchExpertiseStats(user.id);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement du nombre de demandes reçues', error);
+    }
+};
 
   // Regroupement des champs par section pour une meilleure organisation
   const personalInfoFields = [
-    { label: 'Prénom', field: 'firstName' },
-    { label: 'Nom', field: 'lastName' },
-    { label: 'Date de naissance', field: 'birthDate', type: 'date' },
-    { label: 'Nom d\'utilisateur', field: 'username' },
+    { label: 'Prénom', value: userProfile?.firstName, field: 'firstName' },
+    { label: 'Nom',  value: userProfile?.lastName,  field: 'lastName' },
+    { label: 'Date de naissance', value: userProfile?.birthDate,  field: 'birthDate', type: 'date' },
+    { label: 'Nom d\'utilisateur', value: userProfile?.username,  field: 'username' },
   ];
 
   const contactInfoFields = [
@@ -317,7 +398,7 @@ export default function ProfilePage() {
       const amount = 5000;
       const paymentResponse = await FlouciService.generatePaymentLink(
         amount, 
-        contextUser.id,
+        userProfile.id,
         annonceId
       );
 
@@ -336,12 +417,17 @@ export default function ProfilePage() {
     }
   };
 
-  if (error) {
-    return <div className="error-container">Error: {error}</div>;
+  const handleLogout = () => {
+    logout();
+    navigate('/signin');
+  };
+
+  if (loading) {
+    return <div>Chargement...</div>;
   }
 
-  if (!user) {
-    return <div>Loading...</div>;
+  if (error) {
+    return <div>Erreur: {error}</div>;
   }
 
   return (
@@ -355,30 +441,32 @@ export default function ProfilePage() {
               alt="Profile" 
               className="profile-avatar"
             />
-            {user?.role === 'EXPERT' && <span className="expert-badge" />}
+            {user?.role === 'ROLE_EXPERT' && <span className="expert-badge" />}
           </div>
           <div className="profile-info">
             <h1>{user?.username}</h1>
-            <p>{user?.role === 'EXPERT' ? 'Expert Automobile' : 'Membre'}</p>
+            <p>{user?.role === 'ROLE_EXPERT' ? 'Expert Automobile' : 'Membre'}</p>
             <div className="profile-stats">
               <div className="stat-item">
                 <span className="stat-value">{user?.cars?.length || 0}</span>
                 <span className="stat-label">Véhicules</span>
               </div>
               <div className="stat-item">
-                <span className="stat-value">{user?.role === 'EXPERT' ? expertiseCount : '0'}</span>
+                <span className="stat-value">
+                  {user?.role === 'ROLE_EXPERT' ? completedExpertises : '0'}
+                </span>
                 <span className="stat-label">Expertises</span>
               </div>
             </div>
           </div>
           <div className="profile-actions">
-            {user?.role === 'EXPERT' ? (
+            {user?.role === 'ROLE_EXPERT' ? (
               <>
                 <button 
                   className="view-requests-btn" 
                   onClick={handleViewExpertRequests}
                 >
-                  Mes demandes d'expertise ({expertiseCount})
+                  Mes demandes d'expertise ({totalExpertiseRequests})
                 </button>
                 <button 
                   className="inbox-btn" 
@@ -442,7 +530,7 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div className="display-field">
-                    <span>{item.value || '-'}</span>
+                    <span>{userProfile ? userProfile[item.field] || '-' : '-'}</span>
                     <button onClick={() => handleEditClick(item.field)} className="edit-btn">
                       Modifier
                     </button>
@@ -498,7 +586,7 @@ export default function ProfilePage() {
                           const updatedCars = user.cars.map(c => 
                             c.id === car.id ? {...c, available: newAvailabilityStatus} : c
                           );
-                          setUser((prev) => ({ ...prev, cars: updatedCars }));
+                          setUserProfile((prev) => ({ ...prev, cars: updatedCars }));
                           
                           // Toast personnalisé selon le nouvel état
                           if (newAvailabilityStatus) {  // Si la voiture devient disponible
@@ -542,7 +630,7 @@ export default function ProfilePage() {
                           const updatedCars = user.cars.map(c => 
                             c.id === car.id ? {...c, available: !newAvailabilityStatus} : c
                           );
-                          setUser((prev) => ({ ...prev, cars: updatedCars }));
+                          setUserProfile((prev) => ({ ...prev, cars: updatedCars }));
                         }
                       }}
                     />
@@ -1010,4 +1098,6 @@ export default function ProfilePage() {
       <ToastContainer />
     </div>
   );
-}
+};
+
+export default Profile;

@@ -1,11 +1,18 @@
-import axios from 'axios';
+import { axiosInstance } from './apiUserServices';
 
 const API_URL = 'http://localhost:8081/api';
+
+const getRequestsForExpert = async (expertId) => {
+  const response = await axiosInstance.get(`/expertise-requests/expert/${expertId}`);
+  return response.data;
+};
 
 const apiExpertRequestService = {
   getUserRequests: async (userId) => {
     try {
-      const response = await axios.get(`${API_URL}/expertise-requests/user/${userId}`);
+      console.log('Fetching requests for user:', userId); // Debug log
+      const response = await axiosInstance.get(`/expertise-requests/user/${userId}`);
+      console.log('Response data:', response.data); // Debug log
       return response.data;
     } catch (error) {
       console.error('Error fetching user requests:', error);
@@ -13,38 +20,26 @@ const apiExpertRequestService = {
     }
   },
 
-  getAllRequests: () => {
-    return axios.get(`${API_URL}/expert-requests`)
-      .then(response => response.data);
+  getAllRequests: async () => {
+    try {
+      const response = await axiosInstance.get('/expert-requests');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
   },
 
   approveRequest: (id) => {
-    return new Promise((resolve, reject) => {
-      axios.put(`${API_URL}/expert-requests/${id}/approve`)
-        .then(response => {
-          console.log('Approve response:', response);
-          if (response.status === 200) {
-            return axios.delete(`${API_URL}/expert-requests/${id}`)
-              .then(() => {
-                console.log('Request deleted successfully');
-                resolve(response.data);
-              })
-              .catch(deleteError => {
-                console.log('Delete not required or failed, but approve succeeded');
-                resolve(response.data);
-              });
-          }
-          resolve(response.data);
-        })
-        .catch(error => {
-          console.error('Error in approveRequest:', error);
-          reject(error);
-        });
-    });
+    return axiosInstance.put(`/admin/expert-requests/${id}/approve`)
+      .then(response => response.data)
+      .catch(error => {
+        console.error('Error in approveRequest:', error);
+        throw error;
+      });
   },
 
   rejectRequest: (id) => {
-    return axios.put(`${API_URL}/expert-requests/${id}/reject`)
+    return axiosInstance.put(`/admin/expert-requests/${id}/reject`)
       .then(response => response.data)
       .catch(error => {
         console.error('Error in rejectRequest:', error);
@@ -54,7 +49,7 @@ const apiExpertRequestService = {
 
   createRequest: async (requestData) => {
     try {
-      const response = await axios.post(`${API_URL}/expert-requests`, requestData, {
+      const response = await axiosInstance.post('/expert-requests', requestData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -67,7 +62,7 @@ const apiExpertRequestService = {
   },
 
   deleteRequest: (id) => {
-    return axios.delete(`${API_URL}/expert-requests/${id}`)
+    return axiosInstance.delete(`/expert-requests/${id}`)
       .then(response => {
         console.log('Delete response:', response);
         return response.data;
@@ -76,7 +71,9 @@ const apiExpertRequestService = {
         console.error('Error in deleteRequest:', error);
         throw error;
       });
-  }
+  },
+
+  getRequestsForExpert
 };
 
 export default apiExpertRequestService; 

@@ -2,97 +2,91 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Nav } from 'react-bootstrap';
-import { FaHome, FaUsers, FaCar, FaCog, FaBell, FaStar } from 'react-icons/fa';
+import { FaHome, FaUsers, FaCar, FaCog, FaBell, FaStar, FaUserTie, FaUserClock } from 'react-icons/fa';
 
 const StyledNav = styled(Nav)`
   .nav-link {
     color: #ecf0f1;
     padding: 12px 15px;
-    margin-bottom: 10px;
-    border-radius: 8px;
+    margin-bottom: 8px;
+    border-radius: 12px;
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 3px;
+      background: #3498db;
+      transform: scaleY(0);
+      transition: transform 0.2s;
+    }
 
     &:hover {
-      background: #34495e;
-      color: #fff;
+      background: rgba(52, 152, 219, 0.1);
+      color: #3498db;
+
+      &::before {
+        transform: scaleY(1);
+      }
     }
 
     &.active {
       background: #3498db;
-      color: #fff;
+      color: white;
+      transform: translateX(5px);
+
+      &::before {
+        transform: scaleY(1);
+      }
     }
 
     svg {
       font-size: 1.2rem;
+      transition: transform 0.2s;
+    }
+
+    &:hover svg {
+      transform: scale(1.1);
     }
   }
 `;
 
 const AdminSidebar = ({ activeTab, setActiveTab }) => {
+  const menuItems = [
+    { id: 'overview', icon: FaHome, label: 'Vue d\'ensemble' },
+    { id: 'users', icon: FaUsers, label: 'Utilisateurs' },
+    { id: 'cars', icon: FaCar, label: 'Voitures' },
+    { id: 'promoted-cars', icon: FaStar, label: 'Voitures promues' },
+    { id: 'annonces', icon: FaBell, label: 'Annonces' },
+    { id: 'experts', icon: FaUserTie, label: 'Experts' },
+    { id: 'expert-requests', icon: FaUserClock, label: 'Demandes d\'expert' },
+    { id: 'notifications', icon: FaBell, label: 'Notifications' },
+    { id: 'settings', icon: FaCog, label: 'Paramètres' },
+  ];
+
   return (
     <StyledNav className="flex-column">
-      <Nav.Link 
-        className={activeTab === 'overview' ? 'active' : ''} 
-        onClick={() => setActiveTab('overview')}
-      >
-        <FaHome /> Overview
-      </Nav.Link>
-      <Nav.Link 
-        className={activeTab === 'users' ? 'active' : ''} 
-        onClick={() => setActiveTab('users')}
-      >
-        <FaUsers /> Users
-      </Nav.Link>
-      <Nav.Link 
-        className={activeTab === 'cars' ? 'active' : ''} 
-        onClick={() => setActiveTab('cars')}
-      >
-        <FaCar /> Cars
-      </Nav.Link>
-      <Nav.Link 
-        className={activeTab === 'promoted-cars' ? 'active' : ''} 
-        onClick={() => setActiveTab('promoted-cars')}
-      >
-        <FaStar /> Promoted Cars
-      </Nav.Link>
-      <Nav.Link 
-        className={activeTab === 'settings' ? 'active' : ''} 
-        onClick={() => setActiveTab('settings')}
-      >
-        <FaCog /> Settings
-      </Nav.Link>
-      <Nav.Link 
-        className={activeTab === 'annonces' ? 'active' : ''} 
-        onClick={() => setActiveTab('annonces')}
-      >
-        <i className="fas fa-bullhorn me-2"></i>
-        Annonces
-      </Nav.Link>
-      <Nav.Link 
-        className={activeTab === 'notifications' ? 'active' : ''}
-        onClick={() => setActiveTab('notifications')}
-      >
-        <FaBell /> Notifications
-      </Nav.Link>
-      <Nav.Link 
-        active={activeTab === 'experts'}
-        onClick={() => setActiveTab('experts')}
-      >
-        <i className="fas fa-user-tie me-2"></i>
-        Experts
-      </Nav.Link>
-      <Nav.Link 
-        active={activeTab === 'expert-requests'}
-        onClick={() => setActiveTab('expert-requests')}
-      >
-        <i className="fas fa-user-clock me-2"></i>
-        Demandes d'Expert
-      </Nav.Link>
+      {menuItems.map(item => (
+        <Nav.Link
+          key={item.id}
+          className={activeTab === item.id ? 'active' : ''}
+          onClick={() => setActiveTab(item.id)}
+        >
+          <item.icon />
+          {item.label}
+        </Nav.Link>
+      ))}
     </StyledNav>
   );
 };
 
-export default AdminSidebar;
+export default React.memo(AdminSidebar);

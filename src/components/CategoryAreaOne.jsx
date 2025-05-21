@@ -18,7 +18,7 @@ const carBrands = [
 ];
 
 // Duplicate the car brands array to ensure smooth scrolling
-const extendedCarBrands = [...carBrands, ...carBrands, ...carBrands];
+const extendedCarBrands = [...carBrands, ...carBrands.map(brand => ({...brand, id: brand.id + 7})), ...carBrands.map(brand => ({...brand, id: brand.id + 14}))];
 
 const CategoryAreaOne = () => {
   return (

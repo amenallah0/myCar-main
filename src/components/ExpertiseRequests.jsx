@@ -10,7 +10,11 @@ import {
 import moment from 'moment';
 import HeaderFive from './HeaderFive';
 import 'moment/locale/fr';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { axiosInstance } from '../services/apiUserServices';
+import ApiExpertRequestService from '../services/apiExpertRequestServices';
+import ApiExpertiseService from '../services/apiExpertiseService';
+
 moment.locale('fr');
 
 const ExpertiseRequests = () => {
@@ -18,8 +22,14 @@ const ExpertiseRequests = () => {
   const [loading, setLoading] = useState(true);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const { user } = useUser();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!user || user.role !== 'ROLE_EXPERT') {
+      navigate('/');
+      return;
+    }
+
     if (user?.id) {
       fetchRequests();
     }
@@ -42,30 +52,20 @@ const ExpertiseRequests = () => {
 
   const fetchRequests = async () => {
     try {
-      const response = await fetch(`http://localhost:8081/api/expertise-requests/expert/${user.id}`);
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement des demandes');
-      }
-      const data = await response.json();
+      const data = await ApiExpertRequestService.getRequestsForExpert(user.id);
       setRequests(data);
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching requests:', error);
       toast.error('Erreur lors du chargement des demandes d\'expertise');
-    } finally {
       setLoading(false);
     }
   };
 
   const handleAccept = async (requestId) => {
     try {
-      const response = await fetch(`http://localhost:8081/api/expertise-requests/${requestId}/accept`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!response.ok) throw new Error('Erreur lors de l\'acceptation');
-      
+      await ApiExpertRequestService.getRequestsForExpert(user.id);
+      await ApiExpertiseService.approveRequest(requestId);
       await fetchRequests();
       toast.success('Demande acceptée avec succès');
     } catch (error) {
@@ -75,14 +75,7 @@ const ExpertiseRequests = () => {
 
   const handleReject = async (requestId) => {
     try {
-      const response = await fetch(`http://localhost:8081/api/expertise-requests/${requestId}/reject`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!response.ok) throw new Error('Erreur lors du refus');
-      
+      await ApiExpertiseService.rejectRequest(requestId);
       await fetchRequests();
       toast.success('Demande refusée');
     } catch (error) {
@@ -135,6 +128,16 @@ const ExpertiseRequests = () => {
     }
     return moment(date).format('DD MMMM YYYY à HH:mm');
   };
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      if (user?.id) {
+        const data = await ApiExpertRequestService.getRequestsForExpert(user.id);
+        setRequests(data);
+      }
+    };
+    fetchRequests();
+  }, [user?.id]);
 
   if (loading) return (
     <Container className="py-5">

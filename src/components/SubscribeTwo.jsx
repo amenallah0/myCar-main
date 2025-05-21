@@ -7,7 +7,7 @@ const SubscribeTwo = () => {
       <div className="footer-top-3">
         <div className="footer-logo">
           <Link to="/">
-          <img src="assets/img/logo.png" alt="MyCar" width="180px" height="50px" style={{ borderRadius: '10px' }} />
+          <img src="/assets/img/logo.png" alt="MyCar" width="180px" height="50px" style={{ borderRadius: '10px' }} />
           </Link>
         </div>
         <h3 className="footer-top-title text-white">

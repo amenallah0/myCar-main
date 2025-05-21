@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ApiService from '../services/apiUserServices';
+import ApiUserService from '../services/apiUserServices';
 import { Link } from 'react-router-dom'; 
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -132,8 +132,10 @@ function SignUp() {
             return;
         }
 
+        const { confirmPassword, ...userData } = formData;
+
         try {
-            await ApiService.signUp(formData.username, formData.email, formData.password);
+            await ApiUserService.signUpUser(userData);
             toast.success('Inscription réussie ! Veuillez vous connecter.');
             setFormData({
                 username: '',

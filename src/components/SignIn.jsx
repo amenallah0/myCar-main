@@ -4,6 +4,9 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useUser } from '../contexts/userContext';
 import { FaEnvelope, FaLock, FaGoogle } from 'react-icons/fa';
+import { signInUser } from '../services/apiUserServices';
+import TokenService from '../services/TokenService';
+import HeaderFive from './HeaderFive';
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"></link>
 const styles = {
   container: {
@@ -124,108 +127,95 @@ const styles = {
   }
 };
 
-function SignIn() {
+const SignIn = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState(null);
     const navigate = useNavigate();
     const { login } = useUser();
-    const [formData, setFormData] = useState({
-        email: '',
-        password: ''
-    });
-    const [loading, setLoading] = useState(false);
-
-    const handleChange = (e) => {
-        setFormData(prev => ({
-            ...prev,
-            [e.target.name]: e.target.value
-        }));
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.email || !formData.password) {
-            toast.error('Veuillez remplir tous les champs');
-            return;
-        }
-        setLoading(true);
+        setError(null);
+
         try {
-            const response = await fetch('http://localhost:8081/api/users/signin', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify(formData)
-            });
+            const response = await signInUser(email, password);
+            console.log('Réponse du serveur:', response);
 
-            const userData = await response.json();
-
-            if (response.ok) {
-                login(userData);
-                toast.success('Connexion réussie!');
-                navigate(userData.role === 'ADMIN' ? '/admin' : `/profile/${userData.username}`);
+            if (response && response.tokens && response.user) {
+                // Mettre à jour le contexte avec les données de l'utilisateur
+                login(response);
+                navigate('/', { replace: true });
             } else {
-                toast.error(userData.message || 'Échec de la connexion. Vérifiez vos identifiants.');
+                throw new Error('Données de connexion invalides');
             }
         } catch (error) {
-            console.error('Error:', error);
-            toast.error('Erreur de connexion au serveur');
-        } finally {
-            setLoading(false);
+            console.error('Erreur de connexion:', error);
+            setError(error.message || 'Erreur lors de la connexion');
         }
     };
 
     return (
-        <div style={styles.container}>
-            <div style={styles.card}>
-                <h1 style={styles.title}>Connexion</h1>
-                <form onSubmit={handleSubmit}>
-                    <div style={styles.inputGroup}>
-                        <FaEnvelope style={styles.icon} />
-                        <input
-                            type="email"
-                            name="email"
-                            placeholder="Votre email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            style={styles.input}
-                            required
-                        />
+        <>
+            <HeaderFive />
+            <div style={{...styles.container, paddingTop: '100px'}}>
+                <div style={styles.card}>
+                    <h1 style={styles.title}>Connexion</h1>
+                    {error && (
+                        <div className="alert alert-danger" role="alert">
+                            {error}
+                        </div>
+                    )}
+                    <form onSubmit={handleSubmit}>
+                        <div style={styles.inputGroup}>
+                            <FaEnvelope style={styles.icon} />
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="Votre email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                style={styles.input}
+                                required
+                            />
+                        </div>
+                        <div style={styles.inputGroup}>
+                            <FaLock style={styles.icon} />
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="Votre mot de passe"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                style={styles.input}
+                                required
+                            />
+                        </div>
+                        <div style={styles.forgotPassword}>
+                            <Link to="/forgot-password" style={styles.forgotPasswordLink}>
+                                Mot de passe oublié ?
+                            </Link>
+                        </div>
+                        <button 
+                            type="submit" 
+                            style={{...styles.button, ...styles.primaryButton}}
+                        >
+                            Se connecter
+                        </button>
+                        <button 
+                            type="button" 
+                            style={{...styles.button, ...styles.googleButton}}
+                            onClick={() => toast.info('Fonctionnalité Google en cours de développement')}
+                        >
+                            <FaGoogle /> Continuer avec Google
+                        </button>
+                    </form>
+                    <div style={styles.signupText}>
+                        Pas encore de compte ?{' '}
+                        <Link to="/SignUp" style={styles.signupLink}>
+                            S'inscrire
+                        </Link>
                     </div>
-                    <div style={styles.inputGroup}>
-                        <FaLock style={styles.icon} />
-                        <input
-                            type="password"
-                            name="password"
-                            placeholder="Votre mot de passe"
-                            value={formData.password}
-                            onChange={handleChange}
-                            style={styles.input}
-                            required
-                        />
-                    </div>
-                    <button 
-                        type="submit" 
-                        style={{...styles.button, ...styles.primaryButton}}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        ) : 'Se connecter'}
-                    </button>
-                    <button 
-                        type="button" 
-                        style={{...styles.button, ...styles.googleButton}}
-                        onClick={() => toast.info('Fonctionnalité Google en cours de développement')}
-                    >
-                        <FaGoogle /> Continuer avec Google
-                    </button>
-                </form>
-                <div style={styles.signupText}>
-                    Pas encore de compte ?{' '}
-                    <Link to="/SignUp" style={styles.signupLink}>
-                        S'inscrire
-                    </Link>
                 </div>
             </div>
             <ToastContainer 
@@ -240,8 +230,8 @@ function SignIn() {
                 pauseOnHover
                 theme="light"
             />
-        </div>
+        </>
     );
-}
+};
 
 export default SignIn;

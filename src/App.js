@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import RouteScrollToTop from "./helper/RouteScrollToTop";
 import ScrollToTop from "react-scroll-to-top";
 import AboutPage from "./pages/AboutPage";
@@ -22,7 +22,7 @@ import SignUpPage from "./pages/SignUpPage";
 import SignInPage from "./pages/SignInPage";
 import Profile from './pages/ProfilePage';
 import AddCarPage from "./pages/AddCarPage";
-import { UserProvider } from './contexts/userContext';
+import { UserProvider, useUser } from './contexts/userContext';
 import AdminDashboard from './components/admin/AdminDashboard';
 import ExpertiseRequests from './components/ExpertiseRequests';
 import ExpertReport from './components/ExpertReport';
@@ -32,12 +32,55 @@ import PaymentSuccess from './components/PaymentSuccess';
 import PaymentFailed from './components/PaymentFailed';
 import ExpertInbox from './components/ExpertInbox';
 import ViewReport from './components/ViewReport';
+import Login from './contexts/Login';
+import SignIn from "./components/SignIn";
+import { NotificationProvider } from './contexts/NotificationContext';
+import setupAxiosInterceptors from './services/axiosConfig';
 
+// Composant pour les routes protégées
+const PrivateRoute = ({ children }) => {
+  const { isAuthenticated, isLoading } = useUser();
+
+  // Si en cours de chargement, ne rien afficher ou afficher un loader
+  if (isLoading) {
+    return null; // ou votre composant de chargement
+  }
+
+  // Rediriger vers signin si non authentifié
+  if (!isAuthenticated) {
+    return <Navigate to="/signin" replace />;
+  }
+
+  return children;
+};
+
+// Composant pour les routes publiques (inverse de PrivateRoute)
+const PublicRoute = ({ children }) => {
+  const { isAuthenticated, isLoading } = useUser();
+
+  if (isLoading) {
+    return null;
+  }
+
+  // Rediriger vers dashboard si déjà authentifié
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+};
 
 function App() {
+  const { logout, user, isAuthenticated } = useUser();
+
+  useEffect(() => {
+    setupAxiosInterceptors(logout);
+  }, [logout]);
+
   return (
     <UserProvider>
-      <BrowserRouter>
+      <NotificationProvider>
+        <Router>
         <RouteScrollToTop />
         <ScrollToTop smooth color="#E8092E" />
         <Routes>
@@ -57,20 +100,52 @@ function App() {
           <Route exact path="/checkout" element={<CheckoutPage />} />
           <Route exact path="/wishlist" element={<WishlistPage />} />
           <Route exact path="/contact" element={<ContactPage />} />
-          <Route exact path="/SignUp" element={<SignUpPage />} />
-          <Route exact path="/SignIn" element={<SignInPage />} />
-          <Route path="/profile/:username" element={<Profile />} />
+            <Route exact path="/signUp" element={<SignUpPage />} />
+            <Route path="/signin" element={
+              <PublicRoute>
+                <SignIn />
+              </PublicRoute>
+            } />
+            <Route path="/profile/:username" element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            } />
+            <Route path="/profile" element={
+              <PrivateRoute>
+                <Profile />
+              </PrivateRoute>
+            } />
           <Route path="/AddCar" element={<AddCarPage />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/my-expertise-requests" element={<ExpertiseRequests />} />
+            <Route path="/admin" element={
+              <PrivateRoute>
+                <AdminDashboard />
+              </PrivateRoute>
+            } />
+            <Route path="/admin/dashboard" element={
+              isAuthenticated && user && (user.role === 'ROLE_ADMIN' || user.role === 'ADMIN')
+                ? <AdminDashboard />
+                : <Navigate to="/signin" />
+            } />
+            <Route path="/expertise-requests" element={
+              <PrivateRoute>
+                <ExpertiseRequests />
+              </PrivateRoute>
+            } />
           <Route path="/expert-report/:requestId" element={<ExpertReport />} />
           <Route path="/my-sent-requests" element={<MySentRequests />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/payment-failed" element={<PaymentFailed />} />
-          <Route path="/expert-inbox" element={<ExpertInbox />} />
+            <Route path="/expert-inbox" element={
+              <PrivateRoute>
+                <ExpertInbox />
+              </PrivateRoute>
+            } />
           <Route path="/view-report/:id" element={<ViewReport />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </BrowserRouter>
+        </Router>
+      </NotificationProvider>
     </UserProvider>
   );
 }

@@ -1,12 +1,13 @@
 import axios from 'axios';
+import api from './apiUserServices';
 
-const API_URL = 'http://localhost:8081/api/notifications'; // Remplacez par l'URL de votre API
+const API_URL = 'http://localhost:8081';
 
 const ApiNotificationService = {
   // Fonction pour créer une notification
   createNotification: async (notificationData) => {
     try {
-      const response = await axios.post(API_URL, notificationData);
+      const response = await axios.post(`${API_URL}/api/notifications`, notificationData);
       return response.data;
     } catch (error) {
       console.error('Error creating notification:', error);
@@ -17,24 +18,18 @@ const ApiNotificationService = {
   // Fonction pour obtenir toutes les notifications
   getAllNotifications: async () => {
     try {
-      const response = await axios.get(API_URL);
+      const response = await axios.get(`${API_URL}/api/notifications`);
       return response.data;
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      throw error; // Propager l'erreur pour la gestion dans le composant
+      throw error;
     }
   },
 
   // Fonction pour supprimer une notification
   deleteNotification: async (id) => {
     try {
-      const token = localStorage.getItem('token'); // Assurez-vous que le token est stocké
-      const response = await axios.delete(`${API_URL}/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}` // Ajoutez le token d'authentification
-        }
-      });
-      return response.data;
+      await axios.delete(`${API_URL}/api/notifications/${id}`);
     } catch (error) {
       console.error('Error deleting notification:', error);
       throw error; // Propager l'erreur pour la gestion dans le composant

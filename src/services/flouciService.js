@@ -1,13 +1,18 @@
+import TokenService from './TokenService';
+
 const FLOUCI_API_URL = "https://developers.flouci.com/api/generate_payment";
 
 const generatePaymentLink = async (amount, userId, annonceId) => {
   try {
     console.log('Sending payment request with:', { amount, userId, annonceId });
     
+    const token = TokenService.getLocalAccessToken();
+
     const response = await fetch('http://localhost:8081/api/payments/generate-link', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
         amount: amount,

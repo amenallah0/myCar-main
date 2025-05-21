@@ -3,6 +3,8 @@ import { Modal, Form, Button, Card, Badge } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import { useUser } from '../contexts/userContext';
 import { FaUser, FaEnvelope, FaStar, FaTools, FaCar } from 'react-icons/fa';
+import ApiExpertService from '../services/apiExpertServices';
+import { axiosInstance } from '../services/apiUserServices';
 
 const ExpertContactForm = ({ show, handleClose, carId }) => {
   const [experts, setExperts] = useState([]);
@@ -19,11 +21,7 @@ const ExpertContactForm = ({ show, handleClose, carId }) => {
 
   const loadExperts = async () => {
     try {
-      const response = await fetch('http://localhost:8081/api/users/experts');
-      if (!response.ok) {
-        throw new Error('Erreur lors du chargement des experts');
-      }
-      const expertsData = await response.json();
+      const expertsData = await ApiExpertService.getAllExperts();
       setExperts(expertsData);
     } catch (error) {
       console.error('Error loading experts:', error);
@@ -47,17 +45,7 @@ const ExpertContactForm = ({ show, handleClose, carId }) => {
         message: message
       };
 
-      const response = await fetch('http://localhost:8081/api/expertise-requests', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData)
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de l\'envoi de la demande');
-      }
+      const response = await axiosInstance.post('/expertise-requests', requestData);
 
       toast.success('Demande d\'expertise envoyée avec succès');
       handleClose();

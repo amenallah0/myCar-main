@@ -4,7 +4,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import "./index.scss";
-import { UserProvider } from './userContext.jsx';
+import { UserProvider } from './contexts/userContext'; // Changez le chemin d'import
 import { NotificationProvider } from './contexts/NotificationContext';
 
 

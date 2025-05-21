@@ -1,25 +1,22 @@
-import axios from 'axios';
+import { axiosInstance } from './apiUserServices';
+import TokenService from './TokenService';
 
-const API_URL = 'http://localhost:8081';
-
-const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-});
+const API_URL = 'http://localhost:8081/api';
 
 const ApiCarService = {
     getAllCars: async () => {
         try {
-            const response = await api.get('/cars');
+            const response = await axiosInstance.get('/cars');
             return response.data;
         } catch (error) {
-            throw error.response.data;
+            console.error('Error getting all cars:', error);
+            throw error;
         }
     },
 
     getCarById: async (id) => {
         try {
-            const response = await api.get(`/cars/${id}`);
+            const response = await axiosInstance.get(`/cars/${id}`);
             return response.data;
         } catch (error) {
             throw error.response.data;
@@ -28,7 +25,7 @@ const ApiCarService = {
 
     addCarToUser: async (userId, car) => {
         try {
-            const response = await api.post(`/cars/user/${userId}/add`, car);
+            const response = await axiosInstance.post(`/cars/user/${userId}/add`, car);
             return response.data;
         } catch (error) {
             throw error.response.data;
@@ -41,7 +38,7 @@ const ApiCarService = {
             formData.append('car', new Blob([JSON.stringify(car)], { type: 'application/json' }));
             files.forEach((file) => formData.append('files', file));
 
-            const response = await api.post(`/cars/user/${userId}/addWithImages`, formData, {
+            const response = await axiosInstance.post(`/cars/user/${userId}/addWithImages`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -49,15 +46,20 @@ const ApiCarService = {
             return response.data;
         } catch (error) {
             console.error('Error adding car:', error);
-            throw error.response?.data || error; // Propagate the error for handling in the component
+            throw error.response?.data || error;
         }
     },
 
-    deleteCar: async (id) => {
+    deleteCar: async (carId) => {
+        const token = localStorage.getItem('token');
         try {
-            await api.delete(`/cars/${id}`);
+            const response = await axiosInstance.delete(`/cars/${carId}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return response.data;
         } catch (error) {
-            throw error.response.data;
+            console.error("API deleteCar error:", error);
+            throw error;
         }
     },
 
@@ -66,7 +68,7 @@ const ApiCarService = {
             const formData = new FormData();
             files.forEach((file) => formData.append('files', file));
 
-            const response = await api.post(`/cars/${carId}/images`, formData, {
+            const response = await axiosInstance.post(`/cars/${carId}/images`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -78,7 +80,7 @@ const ApiCarService = {
     },
     getCarsByUserId: async (userId) => {
         try {
-          const response = await api.get(`/cars/user/${userId}`);
+          const response = await axiosInstance.get(`/cars/user/${userId}`);
           return response.data;
         } catch (error) {
           console.error('Get Cars By User ID Error:', error);
@@ -87,41 +89,53 @@ const ApiCarService = {
       },
       getLatestCars: async () => {
         try {
-            const response = await api.get('/cars/latest');
+            const response = await axiosInstance.get('/cars/latest', {
+                headers: {
+                    'Authorization': `Bearer ${TokenService.getLocalAccessToken()}`
+                }
+            });
             return response.data;
         } catch (error) {
-            console.error("API Error:", error); // Log API errors
-            throw error.response.data;
+            console.error('API Error:', error);
+            throw error;
         }
     },
     updatePromotionStatus: async (carId, promoted) => {
         try {
-            console.log('Sending promotion update request:', { carId, promoted }); // Log pour debug
-            const response = await api.put(`/cars/${carId}/promote`, null, {
+            console.log('[updatePromotionStatus] carId:', carId, 'promoted:', promoted);
+            const response = await axiosInstance.put(`/cars/${carId}/promote`, null, {
                 params: { promoted },
                 headers: {
                     'Content-Type': 'application/json',
                 }
             });
-            console.log('Promotion update response:', response.data); // Log pour debug
+            console.log('[updatePromotionStatus] response:', response);
             return response.data;
         } catch (error) {
-            console.error('Error updating promotion status:', error);
+            console.error('[updatePromotionStatus] ERROR:', error);
+            if (error.response) {
+                console.error('[updatePromotionStatus] error.response.data:', error.response.data);
+                console.error('[updatePromotionStatus] error.response.status:', error.response.status);
+            }
             throw error.response?.data || error;
         }
     },
     getPromotedCars: async () => {
         try {
-            const response = await api.get('/cars/promoted');
+            const response = await axiosInstance.get('/cars/promoted', {
+                headers: {
+                    'Authorization': `Bearer ${TokenService.getLocalAccessToken()}`
+                }
+            });
             return response.data;
         } catch (error) {
             console.error('Error getting promoted cars:', error);
-            throw error.response?.data || error;
+            throw error;
         }
     },
     updateAvailability: async (carId, available) => {
         try {
-            const response = await api.put(`/cars/${carId}/availability?available=${available}`);
+            const response = await axiosInstance.put(`/cars/${carId}/availability?available=${available}`);
             return response.data;
         } catch (error) {
             console.error('Error updating car availability:', error);
@@ -129,6 +143,5 @@ const ApiCarService = {
         }
     },
 };
-
 
 export default ApiCarService;

@@ -13,6 +13,9 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/autoplay";
 // Import required modules
+import { getAllCars } from '../services/apiCarServices';
+import apiCarServices from '../services/apiCarServices';
+
 const ShopArea = () => {
   const [range, setRange] = useState([0, 100]);
   const [cars, setCars] = useState([]);
@@ -25,6 +28,8 @@ const ShopArea = () => {
   const [favorites, setFavorites] = useState([]);
   const [sortOrder, setSortOrder] = useState("date");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const storedFavorites = JSON.parse(localStorage.getItem('favoriteCars')) || [];
@@ -37,8 +42,9 @@ const ShopArea = () => {
 
   const fetchCars = useCallback(async (query = "", category = "") => {
     try {
-      const response = await ApiCarService.getAllCars();
-      const filtered = response.filter(car => 
+      setLoading(true);
+      const data = await apiCarServices.getAllCars();
+      const filtered = data.filter(car => 
         (car.make.toLowerCase().includes(query.toLowerCase()) ||
         car.model.toLowerCase().includes(query.toLowerCase())) &&
         (category === "" || car.make === category)
@@ -55,7 +61,9 @@ const ShopArea = () => {
       filterByPrice(filtered, [0, Math.ceil(highestPrice / 1000) * 1000]);
     } catch (error) {
       console.error('Error fetching cars:', error);
-      toast.error('Error fetching cars');
+      setError(error.message || 'Erreur lors du chargement des voitures');
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -150,6 +158,10 @@ const ShopArea = () => {
     setSelectedCategory(category);
     fetchCars(searchQuery, category);
   };
+
+  if (loading) return <div>Chargement...</div>;
+  if (error) return <div>Erreur: {error}</div>;
+  if (!cars.length) return <div>Aucune voiture disponible</div>;
 
   return (
     <section className="space-top space-extra-bottom">

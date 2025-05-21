@@ -18,6 +18,7 @@ import "swiper/css/pagination";
 import "swiper/css/autoplay";
 import ReviewService from '../services/ReviewService';
 import { useUser } from '../contexts/userContext';
+import TokenService from '../services/TokenService';
 
 const ReviewForm = ({ show, handleClose, onSubmit }) => {
   const { user } = useUser();
@@ -281,7 +282,9 @@ const ShopDetails = () => {
   }, [id]);
 
   useEffect(() => {
-    console.log('Current user:', user);
+    const token = TokenService.getLocalAccessToken();
+    console.log('Current auth token:', token);
+    console.log('Current user state:', user);
   }, [user]);
 
   const getPrediction = async () => {
@@ -322,6 +325,13 @@ const ShopDetails = () => {
         return;
       }
 
+      // Debug user information
+      console.log('Current user state:', {
+        id: user.id,
+        username: user.username,
+        role: user.role // Check if role exists
+      });
+
       const review = {
         carId: id,
         userId: user.id,
@@ -330,18 +340,22 @@ const ShopDetails = () => {
         comment: reviewData.comment
       };
 
-      console.log('Sending review data:', review);
+      console.log('Submitting review with data:', review);
 
       const response = await ReviewService.addReview(review);
-      console.log('Review submitted successfully:', response);
+      console.log('Review submission response:', response);
       
       await loadReviews();
-      
       setShowReviewForm(false);
       toast.success('Avis ajouté avec succès');
       
     } catch (error) {
       console.error('Error submitting review:', error);
+      console.error('Full error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       toast.error('Erreur lors de l\'ajout de l\'avis');
     }
   };
