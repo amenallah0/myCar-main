@@ -59,14 +59,6 @@ const HeaderFive = () => {
       border: '1px solid transparent',
     };
 
-    const adminButtonStyle = {
-      ...userMenuStyle,
-      backgroundColor: '#ef4444',
-      color: 'white',
-      marginRight: '10px',
-      border: 'none',
-    };
-
     const logoutButtonStyle = {
       padding: '8px 15px',
       borderRadius: '8px',
@@ -105,16 +97,6 @@ const HeaderFive = () => {
           <li style={{ position: 'relative' }}>
             {isAuthenticated && user ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {(user.role === 'ROLE_ADMIN' || user.role === 'ADMIN') && (
-                  <Link 
-                    to="/admin" 
-                    style={adminButtonStyle}
-                    className="admin-button hover-effect"
-                  >
-                    <i className="fas fa-user-shield" style={{ marginRight: '5px' }}></i>
-                    DASHBOARD
-                  </Link>
-                )}
                 <Link 
                   to={`/profile/${user.username}`} 
                   style={{
@@ -151,65 +133,74 @@ const HeaderFive = () => {
               </Link>
             )}
           </li>
-          {(!user || user.role !== 'ADMIN') && (
-            <li style={menuItemStyle}>
-              <Link 
-                to="/wishlist" 
-                style={{
-                  ...userMenuStyle,
-                  backgroundColor: '#f8f9fa',
-                  border: '1px solid #e5e7eb',
-                }} 
-                className="hover-effect"
-              >
-                <i className="far fa-heart" style={{ color: '#ef4444', marginRight: '5px' }}></i>
-                {wishlistCount > 0 && <span style={countStyle}>{wishlistCount}</span>}
-              </Link>
-            </li>
+          {(!user || user.role !== 'ROLE_ADMIN' && user.role !== 'ADMIN') && (
+            <>
+              <li style={menuItemStyle}>
+                <Link 
+                  to="/wishlist" 
+                  style={{
+                    ...userMenuStyle,
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #e5e7eb',
+                  }} 
+                  className="hover-effect"
+                >
+                  <i className="far fa-heart" style={{ color: '#ef4444', marginRight: '5px' }}></i>
+                  {wishlistCount > 0 && <span style={countStyle}>{wishlistCount}</span>}
+                </Link>
+              </li>
+              <li style={menuItemStyle}>
+                <NotificationDropdown />
+              </li>
+            </>
           )}
-          <li style={menuItemStyle}>
-            <NotificationDropdown />
-          </li>
         </ul>
       </div>
     );
   };
 
-  const MainMenu = () => (
-    <nav className="main-menu d-none d-lg-inline-block">
-      <ul>
-        <li><NavLink to="/" className={({isActive}) => isActive ? "active" : ""}>Home</NavLink></li>
-        <li><NavLink to="/about" className={({isActive}) => isActive ? "active" : ""}>About Us</NavLink></li>
-        <li><NavLink to="/service" className={({isActive}) => isActive ? "active" : ""}>Service</NavLink></li>
-        <li><NavLink to="/AddCar" className={({isActive}) => isActive ? "active" : ""}>Add Car</NavLink></li>
-        <li><NavLink to="/shop" className={({isActive}) => isActive ? "active" : ""}>Shop Page</NavLink></li>
-        <li><NavLink to="/contact" className={({isActive}) => isActive ? "active" : ""}>Contact</NavLink></li>
-      </ul>
-    </nav>
-  );
+  const MainMenu = () => {
+    if (user?.role === 'ROLE_ADMIN' || user?.role === 'ADMIN') {
+      return (
+        <nav className="main-menu d-none d-lg-inline-block">
+          <ul>
+            <li><NavLink to="/" className={({isActive}) => isActive ? "active" : ""}>Home</NavLink></li>
+            <li><NavLink to="/admin" className={({isActive}) => isActive ? "active" : ""}>Dashboard</NavLink></li>
+            <li><NavLink to="/shop" className={({isActive}) => isActive ? "active" : ""}>Shop Page</NavLink></li>
+            <li><NavLink to="/AddCar" className={({isActive}) => isActive ? "active" : ""}>Add Car</NavLink></li>
+            <li><NavLink to="/contact" className={({isActive}) => isActive ? "active" : ""}>Contact</NavLink></li>
+          </ul>
+        </nav>
+      );
+    }
+
+    return (
+      <nav className="main-menu d-none d-lg-inline-block">
+        <ul>
+          <li><NavLink to="/" className={({isActive}) => isActive ? "active" : ""}>Home</NavLink></li>
+          <li><NavLink to="/about" className={({isActive}) => isActive ? "active" : ""}>About Us</NavLink></li>
+          <li><NavLink to="/service" className={({isActive}) => isActive ? "active" : ""}>Service</NavLink></li>
+          <li><NavLink to="/AddCar" className={({isActive}) => isActive ? "active" : ""}>Add Car</NavLink></li>
+          <li><NavLink to="/shop" className={({isActive}) => isActive ? "active" : ""}>Shop Page</NavLink></li>
+          <li><NavLink to="/contact" className={({isActive}) => isActive ? "active" : ""}>Contact</NavLink></li>
+        </ul>
+      </nav>
+    );
+  };
 
   return (
     <header className="nav-header header-layout4">
       <div className={`sticky-wrapper ${scroll ? "sticky" : ""}`}>
         <div className="header-top">
           <div className="container">
-            <div className="row justify-content-center justify-content-md-between align-items-center">
+            <div className="row justify-content-between align-items-center">
               <div className="col-auto">
                 <div className="header-logo">
                   <Logo />
                 </div>
               </div>
               <div className="col-auto d-none d-md-block">
-                <nav className="main-menu">
-                  <ul>
-                    <li><NavLink to="/" className={({isActive}) => isActive ? "active" : ""}>Home</NavLink></li>
-                    <li><NavLink to="/about" className={({isActive}) => isActive ? "active" : ""}>About Us</NavLink></li>
-                    <li><NavLink to="/service" className={({isActive}) => isActive ? "active" : ""}>Service</NavLink></li>
-                    <li><NavLink to="/AddCar" className={({isActive}) => isActive ? "active" : ""}>Add Car</NavLink></li>
-                    <li><NavLink to="/shop" className={({isActive}) => isActive ? "active" : ""}>Shop Page</NavLink></li>
-                    <li><NavLink to="/contact" className={({isActive}) => isActive ? "active" : ""}>Contact</NavLink></li>
-                  </ul>
-                </nav>
+                <MainMenu />
               </div>
               <div className="col-auto">
                 <UserMenu />
