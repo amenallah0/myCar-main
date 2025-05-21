@@ -61,7 +61,7 @@ const ExpertContactForm = ({ show, handleClose, carId }) => {
 
   return (
     <Modal show={show} onHide={handleClose} size="lg" centered>
-      <Modal.Header closeButton className="bg-primary text-white border-0">
+      <Modal.Header closeButton className="bg-custom text-white border-0">
         <Modal.Title className="d-flex align-items-center">
           <FaStar className="me-2" size={20} />
           Demande d'Expertise Automobile
@@ -173,23 +173,23 @@ const ExpertContactForm = ({ show, handleClose, carId }) => {
 
         .expert-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+          box-shadow: 0 4px 15px rgba(239, 68, 68, 0.1);
         }
 
         .expert-card.selected {
-          border-color: var(--bs-primary);
-          background-color: rgba(var(--bs-primary-rgb), 0.05);
+          border-color: #ef4444;
+          background-color: rgba(239, 68, 68, 0.05);
         }
 
         .expert-avatar {
           width: 45px;
           height: 45px;
           border-radius: 50%;
-          background-color: #f0f0f0;
+          background-color: #f8f9fa;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: var(--bs-primary);
+          color: #ef4444;
         }
 
         .message-input {
@@ -202,14 +202,15 @@ const ExpertContactForm = ({ show, handleClose, carId }) => {
         }
 
         .message-input:focus {
-          box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.15);
-          border-color: var(--bs-primary);
+          box-shadow: 0 0 0 0.25rem rgba(239, 68, 68, 0.15);
+          border-color: #ef4444;
         }
 
         .expertise-badge {
           font-size: 0.7rem;
           padding: 0.3em 0.6em;
           border-radius: 20px;
+          background-color: #ef4444 !important;
         }
 
         .specialization-badge {
@@ -217,17 +218,27 @@ const ExpertContactForm = ({ show, handleClose, carId }) => {
           padding: 0.4em 0.8em;
           border-radius: 20px;
           background-color: #f8f9fa;
-          border: 1px solid #dee2e6;
+          border: 1px solid #ef4444;
+          color: #ef4444 !important;
           display: inline-flex;
           align-items: center;
         }
 
         .btn-cancel:hover {
           background-color: #f8f9fa;
+          color: #ef4444;
+          border-color: #ef4444;
         }
 
         .btn-submit {
           min-width: 150px;
+          background-color: #ef4444 !important;
+          border-color: #ef4444 !important;
+        }
+
+        .btn-submit:hover {
+          background-color: #dc2626 !important;
+          border-color: #dc2626 !important;
         }
 
         h5 {
@@ -238,6 +249,24 @@ const ExpertContactForm = ({ show, handleClose, carId }) => {
         .modal-content {
           border-radius: 15px;
           overflow: hidden;
+        }
+
+        :global(.modal-header) {
+          background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%) !important;
+        }
+
+        :global(.btn-primary) {
+          background-color: #ef4444 !important;
+          border-color: #ef4444 !important;
+        }
+
+        :global(.btn-primary:hover) {
+          background-color: #dc2626 !important;
+          border-color: #dc2626 !important;
+        }
+
+        :global(.badge-primary) {
+          background-color: #ef4444 !important;
         }
       `}</style>
     </Modal>

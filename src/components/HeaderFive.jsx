@@ -13,23 +13,18 @@ const HeaderFive = () => {
   const { notifications } = useNotification();
   const notificationCount = notifications.length;
 
-  // Optimisation du gestionnaire de défilement
   const handleScroll = useCallback(() => {
     setScroll(window.pageYOffset > 150);
   }, []);
 
-  // Gestionnaire de menu mobile optimisé
   const mobileMenu = useCallback(() => {
     setActive(prev => !prev);
   }, []);
 
-  // Initialisation des écouteurs d'événements
   useEffect(() => {
-    // Gestion des favoris
     const storedFavorites = JSON.parse(localStorage.getItem('favoriteCars')) || [];
     setWishlistCount(storedFavorites.length);
 
-    // Gestion du défilement
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
@@ -39,63 +34,56 @@ const HeaderFive = () => {
     navigate('/');
   };
 
-  // Composant du logo
   const Logo = () => (
     <Link to="/">
       <img 
         src="/assets/img/logo.png" 
         alt="MyCar" 
-        width="180" 
-        height="50" 
-        style={{ borderRadius: '10px' }} 
+        width="150" 
+        height="45" 
+        style={{ borderRadius: '8px' }} 
       />
     </Link>
   );
 
-  // Composant du menu utilisateur optimisé
   const UserMenu = () => {
-    const { user } = useUser();
-    
     const userMenuStyle = {
       display: 'flex',
       alignItems: 'center',
       padding: '8px 15px',
-      borderRadius: '5px',
+      borderRadius: '8px',
       transition: 'all 0.3s ease',
-      backgroundColor: user ? '#f8f9fa' : 'transparent',
+      backgroundColor: 'transparent',
       color: '#333',
       textDecoration: 'none',
+      border: '1px solid transparent',
     };
 
     const adminButtonStyle = {
       ...userMenuStyle,
-      backgroundColor: '#E8092E',
+      backgroundColor: '#ef4444',
       color: 'white',
       marginRight: '10px',
-    };
-
-    const userIconStyle = {
-      marginRight: '8px',
-      fontSize: '16px',
-      color: user ? '#E8092E' : '#333',
+      border: 'none',
     };
 
     const logoutButtonStyle = {
       padding: '8px 15px',
-      borderRadius: '5px',
-      border: '1px solid #E8092E',
+      borderRadius: '8px',
+      border: '1px solid #ef4444',
       backgroundColor: 'transparent',
-      color: '#E8092E',
+      color: '#ef4444',
       cursor: 'pointer',
       transition: 'all 0.3s ease',
       marginLeft: '10px',
       display: 'flex',
       alignItems: 'center',
       fontSize: '14px',
+      fontWeight: '500',
     };
 
     const countStyle = {
-      backgroundColor: '#E8092E',
+      backgroundColor: '#ef4444',
       color: 'white',
       padding: '2px 6px',
       borderRadius: '50%',
@@ -103,6 +91,7 @@ const HeaderFive = () => {
       position: 'absolute',
       top: '-8px',
       right: '-8px',
+      fontWeight: '600',
     };
 
     const menuItemStyle = {
@@ -110,16 +99,12 @@ const HeaderFive = () => {
       marginRight: '20px',
     };
 
-    console.log("HeaderFive - user:", user);
-    console.log("HeaderFive - isAuthenticated:", isAuthenticated);
-    console.log("HeaderFive - user.role:", user?.role);
-
     return (
       <div className="header-right-element">
-        <ul style={{ display: 'flex', alignItems: 'center', margin: 0, padding: 0, listStyle: 'none' }}>
-          <li style={{ position: 'relative', marginRight: '20px' }}>
+        <ul style={{ display: 'flex', alignItems: 'center', margin: 0, padding: 0, listStyle: 'none', gap: '15px' }}>
+          <li style={{ position: 'relative' }}>
             {isAuthenticated && user ? (
-              <div style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {(user.role === 'ROLE_ADMIN' || user.role === 'ADMIN') && (
                   <Link 
                     to="/admin" 
@@ -132,10 +117,14 @@ const HeaderFive = () => {
                 )}
                 <Link 
                   to={`/profile/${user.username}`} 
-                  style={userMenuStyle}
+                  style={{
+                    ...userMenuStyle,
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #e5e7eb',
+                  }}
                   className="user-account hover-effect"
                 >
-                  <i className="far fa-user" style={{ marginRight: '8px' }}></i>
+                  <i className="far fa-user" style={{ marginRight: '8px', color: '#ef4444' }}></i>
                   <span style={{ fontWeight: '500' }}>{user.username}</span>
                 </Link>
                 <button
@@ -150,30 +139,33 @@ const HeaderFive = () => {
             ) : (
               <Link 
                 to="/SignIn"
-                style={userMenuStyle}
+                style={{
+                  ...userMenuStyle,
+                  backgroundColor: '#f8f9fa',
+                  border: '1px solid #e5e7eb',
+                }}
                 className="hover-effect"
               >
-                <i className="far fa-user" style={{ marginRight: '8px' }}></i>
+                <i className="far fa-user" style={{ marginRight: '8px', color: '#ef4444' }}></i>
                 <span>Account</span>
               </Link>
             )}
           </li>
-          {/* N'afficher les icônes favoris et panier que si l'utilisateur n'est pas admin */}
           {(!user || user.role !== 'ADMIN') && (
-            <>
-              <li style={menuItemStyle}>
-                <Link to="/wishlist" style={userMenuStyle} className="hover-effect">
-                  <i className="far fa-heart" style={userIconStyle}></i>
-                  {wishlistCount > 0 && <span style={countStyle}>{wishlistCount}</span>}
-                </Link>
-              </li>
-              {/* <li style={menuItemStyle}>
-                <Link to="/cart" style={userMenuStyle} className="hover-effect">
-                  <i className="fas fa-shopping-cart" style={userIconStyle}></i>
-                  <span style={countStyle}>0</span>
-                </Link>
-              </li> */}
-            </>
+            <li style={menuItemStyle}>
+              <Link 
+                to="/wishlist" 
+                style={{
+                  ...userMenuStyle,
+                  backgroundColor: '#f8f9fa',
+                  border: '1px solid #e5e7eb',
+                }} 
+                className="hover-effect"
+              >
+                <i className="far fa-heart" style={{ color: '#ef4444', marginRight: '5px' }}></i>
+                {wishlistCount > 0 && <span style={countStyle}>{wishlistCount}</span>}
+              </Link>
+            </li>
           )}
           <li style={menuItemStyle}>
             <NotificationDropdown />
@@ -183,169 +175,203 @@ const HeaderFive = () => {
     );
   };
 
-  // Composant de la barre de recherche
-  const SearchBar = () => (
-    <div className="header-search-wrap">
-      <form className="search-form">
-        <input
-          className="form-control"
-          type="text"
-          placeholder="Find your product"
-        />
-        <button className="icon-btn" type="submit">
-          <i className="fas fa-search" />
-        </button>
-      </form>
-    </div>
+  const MainMenu = () => (
+    <nav className="main-menu d-none d-lg-inline-block">
+      <ul>
+        <li><NavLink to="/" className={({isActive}) => isActive ? "active" : ""}>Home</NavLink></li>
+        <li><NavLink to="/about" className={({isActive}) => isActive ? "active" : ""}>About Us</NavLink></li>
+        <li><NavLink to="/service" className={({isActive}) => isActive ? "active" : ""}>Service</NavLink></li>
+        <li><NavLink to="/AddCar" className={({isActive}) => isActive ? "active" : ""}>Add Car</NavLink></li>
+        <li><NavLink to="/shop" className={({isActive}) => isActive ? "active" : ""}>Shop Page</NavLink></li>
+        <li><NavLink to="/contact" className={({isActive}) => isActive ? "active" : ""}>Contact</NavLink></li>
+      </ul>
+    </nav>
   );
-
-  // Menu principal
-  const MainMenu = () => {
-    const { user } = useUser();
-
-    return (
-      <nav className="main-menu d-none d-lg-inline-block">
-        <ul>
-          <li><NavLink to="/" className={({isActive}) => isActive ? "active" : ""}>Home</NavLink></li>
-          <li><NavLink to="/about" className={({isActive}) => isActive ? "active" : ""}>About Us</NavLink></li>
-          <li><NavLink to="/service" className={({isActive}) => isActive ? "active" : ""}>Service</NavLink></li>
-          <li><NavLink to="/AddCar" className={({isActive}) => isActive ? "active" : ""}>Add Car</NavLink></li>
-          <li><NavLink to="/shop" className={({isActive}) => isActive ? "active" : ""}>Shop Page</NavLink></li>
-          <li><NavLink to="/contact" className={({isActive}) => isActive ? "active" : ""}>Contact</NavLink></li>
-        </ul>
-      </nav>
-    );
-  };
 
   return (
     <header className="nav-header header-layout4">
-      <div className="header-top">
-        <div className="container">
-          <div className="row justify-content-center justify-content-md-between align-items-center gy-2">
-            <div className="col-auto d-none d-lg-block">
-              <div className="header-logo">
-                <Logo />
-              </div>
-            </div>
-            <div className="col-auto d-none d-md-block">
-              <SearchBar />
-            </div>
-            <div className="col-auto d-none d-xl-block">
-              <UserMenu />
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className={`sticky-wrapper ${scroll ? "sticky" : ""}`}>
-        <div className="menu-area">
+        <div className="header-top">
           <div className="container">
-            <div className="row align-items-center justify-content-between">
+            <div className="row justify-content-center justify-content-md-between align-items-center">
               <div className="col-auto">
-                <MainMenu />
+                <div className="header-logo">
+                  <Logo />
+                </div>
               </div>
-              <div className="col-auto d-lg-none">
-                <button className="menu-toggle" onClick={mobileMenu}>
-                  <i className={`fa fa-${active ? 'times' : 'bars'}`} />
-                </button>
+              <div className="col-auto d-none d-md-block">
+                <nav className="main-menu">
+                  <ul>
+                    <li><NavLink to="/" className={({isActive}) => isActive ? "active" : ""}>Home</NavLink></li>
+                    <li><NavLink to="/about" className={({isActive}) => isActive ? "active" : ""}>About Us</NavLink></li>
+                    <li><NavLink to="/service" className={({isActive}) => isActive ? "active" : ""}>Service</NavLink></li>
+                    <li><NavLink to="/AddCar" className={({isActive}) => isActive ? "active" : ""}>Add Car</NavLink></li>
+                    <li><NavLink to="/shop" className={({isActive}) => isActive ? "active" : ""}>Shop Page</NavLink></li>
+                    <li><NavLink to="/contact" className={({isActive}) => isActive ? "active" : ""}>Contact</NavLink></li>
+                  </ul>
+                </nav>
+              </div>
+              <div className="col-auto">
+                <UserMenu />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Menu mobile */}
       <div className={`mobile-menu-wrapper ${active ? 'active' : ''}`}>
         <div className="mobile-menu">
           <Logo />
-          <MainMenu />
+          <nav className="main-menu">
+            <ul>
+              <li><NavLink to="/" className={({isActive}) => isActive ? "active" : ""}>Home</NavLink></li>
+              <li><NavLink to="/about" className={({isActive}) => isActive ? "active" : ""}>About Us</NavLink></li>
+              <li><NavLink to="/service" className={({isActive}) => isActive ? "active" : ""}>Service</NavLink></li>
+              <li><NavLink to="/AddCar" className={({isActive}) => isActive ? "active" : ""}>Add Car</NavLink></li>
+              <li><NavLink to="/shop" className={({isActive}) => isActive ? "active" : ""}>Shop Page</NavLink></li>
+              <li><NavLink to="/contact" className={({isActive}) => isActive ? "active" : ""}>Contact</NavLink></li>
+            </ul>
+          </nav>
         </div>
       </div>
+
+      <style jsx>{`
+        .nav-header {
+          background: white;
+        }
+
+        .header-top {
+          padding: 15px 0;
+          background: white;
+        }
+
+        .main-menu ul {
+          display: flex;
+          gap: 25px;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+
+        .main-menu a {
+          color: #333;
+          text-decoration: none;
+          font-weight: 500;
+          padding: 8px 12px;
+          border-radius: 6px;
+          transition: all 0.3s ease;
+          position: relative;
+        }
+
+        .main-menu a::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          width: 0;
+          height: 2px;
+          background-color: #ef4444;
+          transition: all 0.3s ease;
+          transform: translateX(-50%);
+        }
+
+        .main-menu a:hover::after,
+        .main-menu a.active::after {
+          width: 80%;
+        }
+
+        .main-menu a:hover,
+        .main-menu a.active {
+          color: #ef4444;
+          background-color: transparent;
+        }
+
+        .sticky {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          background: white;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          z-index: 1000;
+          animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+          from {
+            transform: translateY(-100%);
+          }
+          to {
+            transform: translateY(0);
+          }
+        }
+
+        .mobile-menu-wrapper {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: white;
+          z-index: 1000;
+          padding: 20px;
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
+        }
+
+        .mobile-menu-wrapper.active {
+          transform: translateX(0);
+          display: block;
+        }
+
+        .mobile-menu ul {
+          flex-direction: column;
+          gap: 15px;
+          margin-top: 20px;
+        }
+
+        .mobile-menu a {
+          display: block;
+          padding: 12px;
+          border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+          .main-menu {
+            display: none;
+          }
+
+          .mobile-menu-wrapper {
+            display: block;
+          }
+
+          .header-right-element {
+            margin-top: 0;
+          }
+        }
+
+        .hover-effect {
+          transition: all 0.3s ease;
+        }
+
+        .hover-effect:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          border-color: #ef4444 !important;
+        }
+
+        .logout-button:hover {
+          background-color: #ef4444 !important;
+          color: white !important;
+        }
+
+        .admin-button:hover {
+          background-color: #dc2626 !important;
+        }
+      `}</style>
     </header>
   );
 };
-
-// Ajoutez ce CSS dans votre fichier de styles
-const styles = `
-  .hover-effect {
-    transition: all 0.3s ease;
-  }
-
-  .hover-effect:hover {
-    background-color: #e9ecef !important;
-    transform: translateY(-2px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-
-  .user-account {
-    border: 1px solid #dee2e6;
-  }
-
-  .user-account:hover {
-    border-color: #E8092E;
-  }
-
-  .logout-button:hover {
-    background-color: #E8092E !important;
-    color: white !important;
-    transform: translateY(-2px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-
-  .logout-button:active {
-    transform: translateY(0);
-  }
-
-  @media (max-width: 768px) {
-    .header-right-element {
-      margin-top: 10px;
-    }
-    
-    .header-right-element ul {
-      justify-content: center;
-    }
-
-    .logout-button {
-      margin-top: 10px;
-      width: 100%;
-      justify-content: center;
-    }
-  }
-
-  .admin-link {
-    color: #E8092E !important;
-    font-weight: 600;
-  }
-
-  .admin-link:hover {
-    background-color: #E8092E !important;
-    color: white !important;
-    border-radius: 5px;
-    padding: 5px 10px;
-  }
-
-  .admin-link.active {
-    background-color: #E8092E !important;
-    color: white !important;
-    border-radius: 5px;
-    padding: 5px 10px;
-  }
-
-  .admin-button {
-    background-color: #E8092E !important;
-    color: white !important;
-  }
-
-  .admin-button:hover {
-    background-color: #c7082a !important;
-    transform: translateY(-2px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-`;
-
-// Injectez les styles dans le document
-const styleSheet = document.createElement("style");
-styleSheet.innerText = styles;
-document.head.appendChild(styleSheet);
 
 export default HeaderFive;

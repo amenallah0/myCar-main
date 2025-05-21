@@ -14,8 +14,345 @@ import { Link, useNavigate } from 'react-router-dom';
 import { axiosInstance } from '../services/apiUserServices';
 import ApiExpertRequestService from '../services/apiExpertRequestServices';
 import ApiExpertiseService from '../services/apiExpertiseService';
+import styled from 'styled-components';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheckCircle, faTimesCircle, faClock } from '@fortawesome/free-solid-svg-icons';
 
 moment.locale('fr');
+
+const ExpertiseDashboard = styled.div`
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  min-height: 100vh;
+  padding-top: 2rem;
+  position: relative;
+`;
+
+const DashboardHeader = styled.div`
+  background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+  padding: 3rem 2rem;
+  border-radius: 0 0 25px 25px;
+  color: white;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  margin-bottom: 3rem;
+`;
+
+const HeaderTitle = styled.h2`
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+  }
+`;
+
+const StatsContainer = styled.div`
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+`;
+
+const StatCard = styled.div`
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.15);
+  }
+`;
+
+const StatIcon = styled.div`
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+`;
+
+const StatInfo = styled.div`
+  h4 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    color: white;
+  }
+
+  p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+  }
+`;
+
+const RequestCard = styled(Card)`
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  max-width: 100%;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.15);
+  }
+
+  .card-header {
+    background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+    color: white;
+    border: none;
+    padding: 1rem 1.25rem;
+  }
+
+  .card-body {
+    padding: 1.25rem;
+  }
+`;
+
+const StatusBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1.2rem;
+  border-radius: 20px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  gap: 0.5rem;
+  background: ${props => {
+    switch (props.status) {
+      case 'PENDING': return 'rgba(239, 68, 68, 0.1)';
+      case 'ACCEPTED': return 'rgba(34, 197, 94, 0.1)';
+      case 'REJECTED': return 'rgba(239, 68, 68, 0.2)';
+      case 'COMPLETED': return 'rgba(59, 130, 246, 0.1)';
+      default: return 'rgba(107, 114, 128, 0.1)';
+    }
+  }};
+  color: ${props => {
+    switch (props.status) {
+      case 'PENDING': return '#ef4444';
+      case 'ACCEPTED': return '#22c55e';
+      case 'REJECTED': return '#ef4444';
+      case 'COMPLETED': return '#3b82f6';
+      default: return '#6b7280';
+    }
+  }};
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+`;
+
+const ActionButtonGroup = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+
+  @media (max-width: 768px) {
+    gap: 0.5rem;
+  }
+`;
+
+const ActionButton = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: 25px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  
+  ${props => props.variant === 'primary' && `
+    background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+    color: white;
+    border: none;
+    
+    &:hover {
+      background: linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 3px 10px rgba(239, 68, 68, 0.2);
+    }
+  `}
+  
+  ${props => props.variant === 'secondary' && `
+    background: white;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    
+    &:hover {
+      background: rgba(239, 68, 68, 0.05);
+      transform: translateY(-2px);
+    }
+  `}
+
+  ${props => props.variant === 'approve' && `
+    background: white;
+    color: #22c55e;
+    border: 1px solid #22c55e;
+    
+    &:hover {
+      background: #22c55e;
+      color: white;
+      transform: translateY(-2px);
+    }
+  `}
+
+  ${props => props.variant === 'reject' && `
+    background: white;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    
+    &:hover {
+      background: #ef4444;
+      color: white;
+      transform: translateY(-2px);
+    }
+  `}
+`;
+
+const ActionButtonBasic = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: 25px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  cursor: pointer;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  ${props => props.variant === 'approve' && `
+    background: white;
+    color: #22c55e;
+    border: 1px solid #22c55e;
+    
+    &:hover:not(:disabled) {
+      background: #22c55e;
+      color: white;
+      transform: translateY(-2px);
+    }
+  `}
+
+  ${props => props.variant === 'reject' && `
+    background: white;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    
+    &:hover:not(:disabled) {
+      background: #ef4444;
+      color: white;
+      transform: translateY(-2px);
+    }
+  `}
+`;
+
+const ButtonText = styled.span`
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+`;
+
+const EmptyState = styled.div`
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  max-width: 500px;
+  margin: 2rem auto;
+
+  svg {
+    font-size: 3rem;
+    color: #ef4444;
+    margin-bottom: 1.5rem;
+  }
+
+  h4 {
+    color: #1f2937;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+
+  p {
+    color: #6b7280;
+    margin-bottom: 0;
+  }
+`;
+
+const RequestsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem 0;
+`;
+
+const CarInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  h5 {
+    font-size: 1.1rem;
+    margin: 0;
+    font-weight: 600;
+  }
+
+  small {
+    font-size: 0.85rem;
+    opacity: 0.8;
+  }
+`;
+
+const ClientInfo = styled.div`
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  
+  .user-details {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    
+    svg {
+      color: #ef4444;
+    }
+  }
+`;
+
+const MessageSection = styled.div`
+  background: #f8f9fa;
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  max-height: 80px;
+  overflow-y: auto;
+`;
 
 const ExpertiseRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -153,584 +490,149 @@ const ExpertiseRequests = () => {
   return (
     <>
       <HeaderFive />
-      <div className="expertise-dashboard">
-        <Container fluid className="py-4 px-4">
-          <div className="dashboard-header mb-4">
-            <div className="d-flex justify-content-between align-items-center flex-wrap">
-              <div className="header-left mb-3 mb-lg-0">
-                <h2 className="dashboard-title">
-                  <FaClipboardList className="me-2" />
-                  Tableau de Bord Expert
-                </h2>
-                <p className="text-muted dashboard-subtitle">
-                  Gérez vos demandes d'expertise automobile
-                </p>
-              </div>
-              <div className="header-right d-flex gap-3">
-                <div className="stats-card">
-                  <div className="stats-icon">
-                    <FaCar />
-                  </div>
-                  <div className="stats-info">
-                    <h4>{requests.length}</h4>
-                    <p>Demandes Totales</p>
-                  </div>
-                </div>
-                <div className="stats-card">
-                  <div className="stats-icon pending">
-                    <FaSpinner />
-                  </div>
-                  <div className="stats-info">
-                    <h4>{requests.filter(r => r.status === 'PENDING').length}</h4>
-                    <p>En Attente</p>
-                  </div>
-                </div>
-                <Button 
-                  variant="outline-primary" 
-                  className="refresh-button"
-                  onClick={fetchRequests}
-                >
-                  <FaSync className="me-2" />
-                  Actualiser
-                </Button>
-              </div>
-            </div>
-          </div>
+      <ExpertiseDashboard>
+        <DashboardHeader>
+          <Container>
+            <HeaderTitle>
+              <FaClipboardList />
+              Tableau de Bord Expert
+            </HeaderTitle>
+            <p className="mb-0 opacity-75">
+              Gérez vos demandes d'expertise automobile
+            </p>
 
+            <StatsContainer>
+              <StatCard>
+                <StatIcon>
+                  <FaCar />
+                </StatIcon>
+                <StatInfo>
+                  <h4>{requests.length}</h4>
+                  <p>Demandes Totales</p>
+                </StatInfo>
+              </StatCard>
+
+              <StatCard>
+                <StatIcon>
+                  <FaSpinner />
+                </StatIcon>
+                <StatInfo>
+                  <h4>{requests.filter(r => r.status === 'PENDING').length}</h4>
+                  <p>En Attente</p>
+                </StatInfo>
+              </StatCard>
+
+              <StatCard>
+                <StatIcon>
+                  <FaFileAlt />
+                </StatIcon>
+                <StatInfo>
+                  <h4>{requests.filter(r => r.status === 'COMPLETED').length}</h4>
+                  <p>Rapports Soumis</p>
+                </StatInfo>
+              </StatCard>
+            </StatsContainer>
+          </Container>
+        </DashboardHeader>
+
+        <Container>
           {requests.length === 0 ? (
-            <Alert variant="info" className="text-center empty-state">
-              <div className="empty-state-icon">
-                <FaCar size={40} />
-              </div>
+            <EmptyState>
+              <FaCar />
               <h4>Aucune demande en attente</h4>
-              <p className="mb-0">Vous n'avez pas de nouvelles demandes d'expertise à traiter.</p>
-            </Alert>
+              <p>Vous n'avez pas de nouvelles demandes d'expertise à traiter.</p>
+            </EmptyState>
           ) : (
-            <div className="requests-container">
+            <RequestsGrid>
               {requests.map((request) => (
-                <Card key={request.id} className="request-card mb-4">
-                  <Card.Header className="d-flex justify-content-between align-items-center">
-                    <div className="car-info">
-                      <h5 className="mb-0 car-title">
-                        {request.car?.make} {request.car?.model}
-                      </h5>
-                      <small className="text-muted">
-                        {request.car?.year} - {request.car?.mileage} km
-                      </small>
-                    </div>
-                    {getStatusBadge(request.status)}
+                <RequestCard key={request.id}>
+                  <Card.Header>
+                    <CarInfo>
+                      <FaCar size={20} />
+                      <div>
+                        <h5>{request.car?.make} {request.car?.model}</h5>
+                        <small>{request.car?.year} - {request.car?.mileage} km</small>
+                      </div>
+                    </CarInfo>
                   </Card.Header>
+                  
                   <Card.Body>
-                    <div className="client-info mb-3">
-                      <div className="user-profile d-flex align-items-center mb-3">
-                        <div className="user-avatar me-3">
-                          {request.user?.profileImage ? (
-                            <Image src={request.user.profileImage} roundedCircle />
-                          ) : (
-                            <div className="avatar-placeholder">
-                              {request.user?.firstName?.[0]}{request.user?.lastName?.[0]}
-                            </div>
-                          )}
-                        </div>
-                        <div className="user-details">
-                          <h6 className="mb-1">
-                            {request.user?.firstName} {request.user?.lastName}
-                          </h6>
-                          <div className="user-contact">
-                            <small className="text-muted d-flex align-items-center mb-1">
-                              <FaEnvelope className="me-2" /> {request.user?.email}
-                            </small>
-                            {request.user?.phone && (
-                              <small className="text-muted d-flex align-items-center">
-                                <FaPhone className="me-2" /> {request.user?.phone}
-                              </small>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="request-details p-3 bg-light rounded">
-                        <div className="d-flex align-items-center mb-2">
-                          <FaCalendarAlt className="me-2 text-primary" />
-                          <small>
-                            Demande reçue le {formatDate(request.requestDate)}
-                          </small>
-                        </div>
-                        {request.user?.address && (
-                          <div className="d-flex align-items-center">
-                            <FaMapMarkerAlt className="me-2 text-primary" />
-                            <small>{request.user.address}</small>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="message-section">
-                      <h6 className="mb-2">Message du client</h6>
-                      <div className="message-content">
-                        {request.message}
-                      </div>
-                    </div>
-                    <div className="request-actions mt-3">
-                      <div className="action-buttons-group">
-                        <Button 
-                          variant="outline-success" 
-                          className="action-button approve-button"
-                          onClick={() => handleAccept(request.id)}
-                          disabled={request.status !== 'PENDING'}
-                        >
-                          <FaCheck className="button-icon" />
-                          <span className="button-text">Approuver</span>
-                        </Button>
-                        
-                        <Button 
-                          variant="outline-danger"
-                          className="action-button reject-button"
-                          onClick={() => handleReject(request.id)} 
-                          disabled={request.status !== 'PENDING'}
-                        >
-                          <FaTimes className="button-icon" />
-                          <span className="button-text">Refuser</span>
-                        </Button>
-                        
-                        <Link 
-                          to={`/shop-details/${request.car?.id}`} 
-                          className="btn btn-outline-primary action-button view-button"
-                        >
-                          <FaCar className="button-icon" />
-                          <span className="button-text">Voir l'annonce</span>
-                        </Link>
-                        
-                        {request.status === 'ACCEPTED' && !request.report && (
-                          <Link 
-                            to={`/expert-report/${request.id}`}
-                            className="btn btn-outline-info action-button report-button"
-                          >
-                            <FaFileAlt className="button-icon" />
-                            <span className="button-text">Rédiger le rapport</span>
-                          </Link>
-                        )}
+                    <StatusBadge status={request.status}>
+                      <FontAwesomeIcon 
+                        icon={
+                          request.status === 'ACCEPTED' ? faCheckCircle :
+                          request.status === 'REJECTED' ? faTimesCircle :
+                          faClock
+                        }
+                      />
+                      {request.status === 'PENDING' ? 'En attente' :
+                       request.status === 'ACCEPTED' ? 'Acceptée' :
+                       'Refusée'}
+                    </StatusBadge>
 
-                        {request.status === 'COMPLETED' && request.report && (
-                          <Link 
-                            to={`/view-report/${request.id}`}
-                            className="btn btn-outline-secondary action-button view-report-button"
-                          >
-                            <FaFileAlt className="button-icon" />
-                            <span className="button-text">Voir le rapport</span>
-                          </Link>
-                        )}
+                    <ClientInfo>
+                      <div className="user-details">
+                        <FaUser />
+                        <span>{request.user?.firstName} {request.user?.lastName}</span>
                       </div>
-                    </div>
+                      <div className="user-details">
+                        <FaCalendarAlt />
+                        <span>{formatDate(request.requestDate)}</span>
+                      </div>
+                    </ClientInfo>
+
+                    <MessageSection>
+                      {request.message}
+                    </MessageSection>
+
+                    <ActionButtonGroup>
+                      {request.status === 'PENDING' && (
+                        <>
+                          <ActionButtonBasic
+                            variant="approve"
+                            onClick={() => handleAccept(request.id)}
+                            disabled={request.status !== 'PENDING'}
+                          >
+                            <FaCheck size={14} />
+                            <span>Approuver</span>
+                          </ActionButtonBasic>
+
+                          <ActionButtonBasic
+                            variant="reject"
+                            onClick={() => handleReject(request.id)}
+                            disabled={request.status !== 'PENDING'}
+                          >
+                            <FaTimes size={14} />
+                            <span>Refuser</span>
+                          </ActionButtonBasic>
+                        </>
+                      )}
+
+                      <ActionButton 
+                        to={`/shop-details/${request.car?.id}`}
+                        variant="secondary"
+                      >
+                        <FaCar size={14} />
+                        <span>Voir l'annonce</span>
+                      </ActionButton>
+
+                      {request.status === 'ACCEPTED' && !request.report && (
+                        <ActionButton 
+                          to={`/expert-report/${request.id}`}
+                          variant="primary"
+                        >
+                          <FaFileAlt size={14} />
+                          <span>Rédiger le rapport</span>
+                        </ActionButton>
+                      )}
+                    </ActionButtonGroup>
                   </Card.Body>
-                </Card>
+                </RequestCard>
               ))}
-            </div>
+            </RequestsGrid>
           )}
-
-          {showScrollTop && (
-            <button 
-              className="scroll-to-top"
-              onClick={scrollToTop}
-              aria-label="Retour en haut"
-            >
-              <FaArrowUp />
-            </button>
-          )}
-
-          <style jsx>{`
-            .expertise-dashboard {
-              background-color: #f8f9fa;
-              min-height: calc(100vh - 80px);
-              padding-top: 2rem;
-              position: relative;
-            }
-
-            .dashboard-header {
-              background: white;
-              padding: 2rem;
-              border-radius: 15px;
-              box-shadow: 0 2px 15px rgba(0,0,0,0.05);
-              margin-bottom: 2rem;
-            }
-
-            .dashboard-title {
-              font-size: 1.8rem;
-              color: #2c3e50;
-              font-weight: 600;
-              margin-bottom: 0.5rem;
-              display: flex;
-              align-items: center;
-            }
-
-            .dashboard-subtitle {
-              font-size: 1rem;
-              margin-bottom: 0;
-            }
-
-            .stats-card {
-              background: white;
-              padding: 1.2rem;
-              border-radius: 12px;
-              display: flex;
-              align-items: center;
-              gap: 1rem;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-              transition: all 0.3s ease;
-            }
-
-            .stats-card:hover {
-              transform: translateY(-3px);
-              box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            }
-
-            .stats-icon {
-              width: 45px;
-              height: 45px;
-              border-radius: 12px;
-              background: var(--bs-primary);
-              color: white;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 1.2rem;
-            }
-
-            .stats-icon.pending {
-              background: #ffc107;
-            }
-
-            .stats-info h4 {
-              margin: 0;
-              font-size: 1.5rem;
-              font-weight: 600;
-              color: #2c3e50;
-            }
-
-            .stats-info p {
-              margin: 0;
-              font-size: 0.9rem;
-              color: #6c757d;
-            }
-
-            .refresh-button {
-              height: 100%;
-              display: flex;
-              align-items: center;
-              padding: 0.8rem 1.5rem;
-              font-weight: 500;
-              transition: all 0.3s ease;
-            }
-
-            .refresh-button:hover {
-              transform: translateY(-2px);
-              box-shadow: 0 2px 8px rgba(var(--bs-primary-rgb), 0.2);
-            }
-
-            .empty-state {
-              padding: 3rem;
-              border-radius: 12px;
-            }
-
-            .empty-state-icon {
-              margin-bottom: 1.5rem;
-              color: var(--bs-primary);
-            }
-
-            .request-card {
-              border: none;
-              border-radius: 12px;
-              box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-              transition: all 0.3s ease;
-            }
-
-            .request-card:hover {
-              transform: translateY(-4px);
-              box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-            }
-
-            .car-title {
-              font-size: 1.1rem;
-              color: #2c3e50;
-              font-weight: 600;
-            }
-
-            .status-badge {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              padding: 8px 16px;
-              border-radius: 20px;
-              font-weight: 500;
-              font-size: 0.9rem;
-            }
-
-            .status-badge-pending {
-              background-color: #fff3cd;
-              color: #856404;
-              border: 1px solid #ffeeba;
-            }
-
-            .status-badge-accepted {
-              background-color: #d4edda;
-              color: #155724;
-              border: 1px solid #c3e6cb;
-            }
-
-            .status-badge-rejected {
-              background-color: #f8d7da;
-              color: #721c24;
-              border: 1px solid #f5c6cb;
-            }
-
-            .status-badge-completed {
-              background-color: #cff4fc;
-              color: #055160;
-              border: 1px solid #b6effb;
-            }
-
-            .status-icon {
-              font-size: 1rem;
-            }
-
-            .spinning {
-              animation: spin 1s linear infinite;
-            }
-
-            @keyframes spin {
-              from { transform: rotate(0deg); }
-              to { transform: rotate(360deg); }
-            }
-
-            .user-avatar {
-              width: 50px;
-              height: 50px;
-              overflow: hidden;
-            }
-
-            .avatar-placeholder {
-              width: 100%;
-              height: 100%;
-              background: var(--bs-primary);
-              color: white;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-weight: 600;
-              border-radius: 50%;
-            }
-
-            .user-details {
-              flex: 1;
-            }
-
-            .message-content {
-              background-color: #f8f9fa;
-              padding: 1rem;
-              border-radius: 8px;
-              font-size: 0.95rem;
-              line-height: 1.5;
-            }
-
-            .request-details {
-              background-color: rgba(var(--bs-primary-rgb), 0.05);
-            }
-
-            .request-actions {
-              margin-top: 1.5rem;
-            }
-
-            .action-buttons-group {
-              display: flex;
-              gap: 12px;
-              flex-wrap: wrap;
-            }
-
-            .action-button {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              gap: 8px;
-              padding: 10px 20px;
-              border-radius: 8px;
-              font-weight: 500;
-              transition: all 0.3s ease;
-              min-width: 140px;
-              border-width: 2px;
-            }
-
-            .action-button:hover {
-              transform: translateY(-2px);
-              box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            }
-
-            .action-button:active {
-              transform: translateY(0);
-            }
-
-            .approve-button {
-              background-color: transparent;
-              border-color: #28a745;
-              color: #28a745;
-            }
-
-            .approve-button:hover:not(:disabled) {
-              background-color: #28a745;
-              color: white;
-            }
-
-            .reject-button {
-              background-color: transparent;
-              border-color: #dc3545;
-              color: #dc3545;
-            }
-
-            .reject-button:hover:not(:disabled) {
-              background-color: #dc3545;
-              color: white;
-            }
-
-            .view-button {
-              background-color: transparent;
-              border-color: #007bff;
-              color: #007bff;
-            }
-
-            .view-button:hover {
-              background-color: #007bff;
-              color: white;
-            }
-
-            .button-icon {
-              font-size: 1.1rem;
-              transition: transform 0.3s ease;
-            }
-
-            .action-button:hover .button-icon {
-              transform: scale(1.1);
-            }
-
-            .button-text {
-              font-size: 0.95rem;
-            }
-
-            .action-button:disabled {
-              opacity: 0.6;
-              cursor: not-allowed;
-              transform: none;
-              box-shadow: none;
-            }
-
-            @media (max-width: 768px) {
-              .header-right {
-                flex-direction: column;
-                width: 100%;
-              }
-
-              .stats-card {
-                width: 100%;
-              }
-
-              .refresh-button {
-                width: 100%;
-                justify-content: center;
-              }
-
-              .requests-container {
-                max-height: calc(100vh - 150px);
-              }
-
-              .scroll-to-top {
-                bottom: 20px;
-                right: 20px;
-                width: 40px;
-                height: 40px;
-              }
-
-              .action-buttons-group {
-                flex-direction: column;
-                width: 100%;
-              }
-
-              .action-button {
-                width: 100%;
-                justify-content: center;
-              }
-            }
-
-            /* Animation pour les boutons disabled */
-            .action-button:disabled::after {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              width: 100%;
-              height: 100%;
-              background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
-              background-size: 200% 100%;
-              animation: disabledShimmer 1.5s infinite;
-            }
-
-            @keyframes disabledShimmer {
-              0% {
-                background-position: 100% 0;
-              }
-              100% {
-                background-position: -100% 0;
-              }
-            }
-
-            /* Effet de ripple au clic */
-            .action-button {
-              position: relative;
-              overflow: hidden;
-            }
-
-            .action-button::after {
-              content: '';
-              position: absolute;
-              width: 100%;
-              height: 100%;
-              top: 0;
-              left: 0;
-              pointer-events: none;
-              background-image: radial-gradient(circle, rgba(255,255,255,0.3) 10%, transparent 10.01%);
-              background-repeat: no-repeat;
-              background-position: 50%;
-              transform: scale(10, 10);
-              opacity: 0;
-              transition: transform 0.5s, opacity 1s;
-            }
-
-            .action-button:active::after {
-              transform: scale(0, 0);
-              opacity: 0.3;
-              transition: 0s;
-            }
-
-            .report-button {
-              background-color: transparent;
-              border-color: #17a2b8;
-              color: #17a2b8;
-            }
-
-            .report-button:hover {
-              background-color: #17a2b8;
-              color: white;
-            }
-
-            .view-report-button {
-              background-color: transparent;
-              border-color: #6c757d;
-              color: #6c757d;
-            }
-
-            .view-report-button:hover {
-              background-color: #6c757d;
-              color: white;
-              box-shadow: 0 4px 12px rgba(108, 117, 125, 0.2);
-            }
-          `}</style>
         </Container>
-      </div>
+      </ExpertiseDashboard>
     </>
   );
 };

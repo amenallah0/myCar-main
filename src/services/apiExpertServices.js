@@ -1,6 +1,7 @@
 import { axiosInstance } from './apiUserServices';
 
 const API_URL = 'http://localhost:8081/api';
+const USER_API_URL = 'http://localhost:8081/api/users';
 
 const ApiExpertService = {
   getAllExperts: async () => {
@@ -13,7 +14,7 @@ const ApiExpertService = {
   },
 
   deleteExpert(id) {
-    return axiosInstance.delete(`${API_URL}/${id}`);
+    return axiosInstance.delete(`${USER_API_URL}/${id}`);
   },
 
   updateExpert(id, expert) {

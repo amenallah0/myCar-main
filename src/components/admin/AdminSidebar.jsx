@@ -2,7 +2,8 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Nav } from 'react-bootstrap';
-import { FaHome, FaUsers, FaCar, FaCog, FaBell, FaStar, FaUserTie, FaUserClock } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import { FaHome, FaUsers, FaCar, FaCog, FaBell, FaStar, FaUserTie, FaUserClock, FaArrowLeft } from 'react-icons/fa';
 
 const StyledNav = styled(Nav)`
   .nav-link {
@@ -58,6 +59,22 @@ const StyledNav = styled(Nav)`
       transform: scale(1.1);
     }
   }
+
+  .home-link {
+    text-decoration: none;
+    margin-bottom: 20px;
+    display: block;
+    
+    .nav-link {
+      background: #2ecc71;
+      color: white;
+      
+      &:hover {
+        background: #27ae60;
+        transform: translateX(5px);
+      }
+    }
+  }
 `;
 
 const AdminSidebar = ({ activeTab, setActiveTab }) => {
@@ -75,6 +92,13 @@ const AdminSidebar = ({ activeTab, setActiveTab }) => {
 
   return (
     <StyledNav className="flex-column">
+      <Link to="/" className="home-link">
+        <Nav.Link as="div">
+          <FaArrowLeft />
+          Retour à l'accueil
+        </Nav.Link>
+      </Link>
+      
       {menuItems.map(item => (
         <Nav.Link
           key={item.id}

@@ -781,207 +781,262 @@ const StyledModal = styled(Modal)`
   }
 `;
 
+const ExpertCard = styled(Card)`
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  }
+
+  .expert-header {
+    padding: 1rem;
+    background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    color: white;
+  }
+
+  .expert-avatar {
+    width: 45px;
+    height: 45px;
+    background: white;
+    color: #1a237e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    border: 2px solid rgba(255,255,255,0.2);
+  }
+
+  .expert-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+  }
+
+  .expert-speciality {
+    font-size: 0.85rem;
+    opacity: 0.9;
+  }
+
+  .expert-body {
+    padding: 1rem;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: #6c757d;
+    font-size: 0.85rem;
+    
+    i {
+      width: 16px;
+      color: #1a237e;
+      font-size: 0.9rem;
+    }
+  }
+
+  .expert-footer {
+    padding: 0.75rem 1rem;
+    background: #f8f9fa;
+    border-top: 1px solid #eee;
+  }
+`;
+
+const ExpertStats = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+
+  .stat-item {
+    background: rgba(26, 35, 126, 0.05);
+    padding: 0.75rem;
+    border-radius: 8px;
+    text-align: center;
+
+    .stat-value {
+      font-size: 1rem;
+      color: #1a237e;
+      margin-bottom: 0.2rem;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #6c757d;
+    }
+  }
+`;
+
 const AdminExperts = ({ experts, onDelete, onEdit }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredExperts, setFilteredExperts] = useState(experts || []);
+
+  useEffect(() => {
+    if (!Array.isArray(experts)) {
+      console.error('Experts is not an array:', experts);
+      setFilteredExperts([]);
+      return;
+    }
+
+    const filtered = experts.filter(expert => {
+      const username = expert.user?.username?.toLowerCase() || '';
+      const email = expert.user?.email?.toLowerCase() || '';
+      const specialization = expert.specialization?.toLowerCase() || '';
+      const searchLower = searchTerm.toLowerCase();
+      
+      return username.includes(searchLower) ||
+             email.includes(searchLower) ||
+             specialization.includes(searchLower);
+    });
+    
+    console.log('Filtered experts:', filtered);
+    setFilteredExperts(filtered);
+  }, [searchTerm, experts]);
+
+  const getStatusBadgeClass = (status) => {
+    switch(status?.toUpperCase()) {
+      case 'APPROVED':
+        return 'success';
+      case 'REJECTED':
+        return 'danger';
+      case 'PENDING':
+      default:
+        return 'warning';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch(status?.toUpperCase()) {
+      case 'APPROVED':
+        return 'Approuvé';
+      case 'REJECTED':
+        return 'Rejeté';
+      case 'PENDING':
+      default:
+        return 'En attente';
+    }
+  };
+
   return (
     <div className="experts-section">
-      <DashboardHeader>
-        <div>
-          <PageTitle>Gestion des Experts</PageTitle>
-          <p className="text-muted mb-0">Gérez les experts de la plateforme</p>
+      <div className="search-section mb-4">
+        <div className="d-flex align-items-center bg-white p-3 rounded-3 shadow-sm">
+          <i className="fas fa-search text-muted me-3"></i>
+          <Form.Control
+            type="search"
+            placeholder="Rechercher un expert..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="border-0 flex-grow-1"
+          />
         </div>
-        <div className="d-flex align-items-center gap-3">
-          <StatusBadge className="success">
-            {experts.length} Experts
-          </StatusBadge>
-        </div>
-      </DashboardHeader>
+      </div>
 
-      <StyledCard>
-        <Card.Body>
-          <div className="table-responsive">
-            <StyledTable>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Expert</th>
-                  <th>Spécialité</th>
-                  <th>Contact</th>
-                  <th>Statut</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {experts.map((expert) => (
-                  <tr key={expert.id}>
-                    <td>
-                      <span className="id-badge">#{expert.id}</span>
-                    </td>
-                    <td>
-                      <div className="expert-info">
-                        <div className="expert-avatar">
-                          {expert.nom ? expert.nom.charAt(0).toUpperCase() : '?'}
-                        </div>
-                        <div className="expert-details">
-                          <div className="expert-name">
-                            {expert.nom} {expert.prenom}
-                          </div>
-                          <div className="expert-email">{expert.email}</div>
-                        </div>
+      <Row className="g-4">
+        {filteredExperts.length === 0 ? (
+          <Col xs={12}>
+            <div className="text-center py-5">
+              <i className="fas fa-user-tie fa-3x text-muted mb-3"></i>
+              <h4>Aucun expert trouvé</h4>
+              <p className="text-muted">Aucun expert approuvé ne correspond à vos critères de recherche</p>
+            </div>
+          </Col>
+        ) : (
+          filteredExperts.map((expert) => (
+            <Col key={expert.id} lg={3} md={4} sm={6}>
+              <ExpertCard>
+                <div className="expert-header">
+                  <div className="expert-avatar">
+                    {expert.user.username.charAt(0).toUpperCase()}
+                  </div>
+                  <h5 className="expert-name">
+                    {expert.user.username}
+                  </h5>
+                  <div className="expert-speciality">
+                    <i className="fas fa-tools me-2"></i>
+                    {expert.specialization}
+                  </div>
+                </div>
+                
+                <div className="expert-body">
+                  <div className="info-item">
+                    <i className="fas fa-envelope"></i>
+                    <span>{expert.user.email}</span>
+                  </div>
+                  <div className="info-item">
+                    <i className="fas fa-phone"></i>
+                    <span>
+                      {expert.user.phone}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <i className="fas fa-briefcase"></i>
+                    <span>{expert.currentPosition}</span>
+                  </div>
+                  <div className="info-item">
+                    <i className="fas fa-graduation-cap"></i>
+                    <span>{expert.experience}</span>
+                  </div>
+                  
+                  <ExpertStats>
+                    <div className="stat-item">
+                      <div className="stat-value">
+                        <i className="fas fa-certificate"></i>
                       </div>
-                    </td>
-                    <td>
-                      <span className="speciality-badge">
-                        {expert.specialite || 'Non spécifié'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="contact-info">
-                        <div className="contact-item">
-                          <i className="fas fa-envelope"></i>
-                          {expert.email}
-                        </div>
-                        <div className="contact-item">
-                          <i className="fas fa-phone"></i>
-                          {expert.telephone || 'Non spécifié'}
-                        </div>
+                      <div className="stat-label">
+                        {expert.diplomaUrl ? (
+                          <a 
+                            href={`http://localhost:8081/api/files/download/${expert.diplomaUrl}`}
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="text-primary"
+                          >
+                            Voir le diplôme
+                          </a>
+                        ) : 'Diplôme non fourni'}
                       </div>
-                    </td>
-                    <td>
-                      <StatusBadge 
-                        className={expert.status === 'ACTIVE' ? 'success' : 'warning'}
+                    </div>
+                    <div className="stat-item">
+                      <div className="stat-value">
+                        <i className="fas fa-clock"></i>
+                      </div>
+                      <div className="stat-label">
+                        {expert.createdAt ? moment(expert.createdAt).format('DD/MM/YYYY') : 'Date non spécifiée'}
+                      </div>
+                    </div>
+                  </ExpertStats>
+                </div>
+                
+                <div className="expert-footer">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <StatusBadge className="success">
+                      Approuvé
+                    </StatusBadge>
+                    <div className="d-flex gap-2">
+                      <ActionButton
+                        className="danger"
+                        onClick={() => onDelete(expert.id)}
+                        title="Supprimer"
                       >
-                        {expert.status === 'ACTIVE' ? 'Actif' : 'Inactif'}
-                      </StatusBadge>
-                    </td>
-                    <td>
-                      <div className="action-buttons">
-                        <ActionButton
-                          className="secondary"
-                          onClick={() => onEdit(expert)}
-                          title="Modifier"
-                        >
-                          <i className="fas fa-edit"></i>
-                        </ActionButton>
-                        <ActionButton
-                          className="danger"
-                          onClick={() => onDelete(expert.id)}
-                          title="Supprimer"
-                        >
-                          <i className="fas fa-trash"></i>
-                        </ActionButton>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </StyledTable>
-          </div>
-        </Card.Body>
-      </StyledCard>
-
-      <style>{`
-        .experts-section {
-          animation: fadeIn 0.3s ease-in-out;
-        }
-
-        .id-badge {
-          background: rgba(26, 35, 126, 0.1);
-          color: #1a237e;
-          padding: 0.25rem 0.75rem;
-          border-radius: 12px;
-          font-size: 0.875rem;
-          font-weight: 500;
-        }
-
-        .expert-info {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-
-        .expert-avatar {
-          width: 40px;
-          height: 40px;
-          background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
-          color: white;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: 600;
-          font-size: 1.1rem;
-        }
-
-        .expert-details {
-          display: flex;
-          flex-direction: column;
-        }
-
-        .expert-name {
-          font-weight: 600;
-          color: #2c3e50;
-          margin-bottom: 0.25rem;
-        }
-
-        .expert-email {
-          font-size: 0.875rem;
-          color: #6c757d;
-        }
-
-        .speciality-badge {
-          background: rgba(255, 171, 0, 0.1);
-          color: #ffab00;
-          padding: 0.5rem 1rem;
-          border-radius: 20px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          display: inline-block;
-        }
-
-        .contact-info {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .contact-item {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-size: 0.875rem;
-          color: #6c757d;
-        }
-
-        .contact-item i {
-          color: #1a237e;
-          font-size: 0.875rem;
-        }
-
-        .action-buttons {
-          display: flex;
-          gap: 0.5rem;
-        }
-
-        .action-buttons button {
-          width: 36px;
-          height: 36px;
-          padding: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
+                        <i className="fas fa-trash"></i>
+                      </ActionButton>
+                    </div>
+                  </div>
+                </div>
+              </ExpertCard>
+            </Col>
+          ))
+        )}
+      </Row>
     </div>
   );
 };
@@ -1232,21 +1287,53 @@ const AdminDashboard = () => {
 
   const fetchExperts = async () => {
     try {
-      const response = await ApiExpertService.getAllExperts();
-      console.log('Experts fetched:', response);
+      const expertsResponse = await ApiExpertRequestService.getAllRequests();
+      console.log('Raw experts data:', expertsResponse);
       
-      // Formater les données si nécessaire
-      const formattedExperts = response.map(expert => ({
-        id: expert.id,
-        nom: expert.nom || expert.username?.split(' ')[0] || '',
-        prenom: expert.prenom || expert.username?.split(' ')[1] || '',
-        specialite: expert.specialization || expert.specialite,
-        email: expert.email,
-        telephone: expert.phone || expert.telephone || '',
-        status: expert.status
-      }));
+      // Ensure we have an array to work with and filter only APPROVED experts
+      const expertsArray = Array.isArray(expertsResponse) ? expertsResponse : [expertsResponse];
+      const approvedExperts = expertsArray.filter(request => request.status === 'APPROVED');
+      
+      // Format the expert data properly
+      const formattedExperts = approvedExperts.map(expert => {
+        // Log the raw expert data to check phone number
+        console.log('Processing expert:', expert);
+        
+        // Extract phone number from the raw data
+        const rawPhone = expert.phone || (expert.user && expert.user.phone) || '';
+        console.log('Raw phone:', rawPhone);
+        
+        // Format the phone number
+        const formattedPhone = rawPhone && rawPhone !== 'null' && rawPhone.trim() !== '' 
+          ? rawPhone 
+          : 'Téléphone non spécifié';
+        
+        console.log('Formatted phone:', formattedPhone);
+        
+        // Create the formatted expert object
+        const formattedExpert = {
+          id: expert.id,
+          user: {
+            username: expert.username || (expert.user && expert.user.username) || 'Expert sans nom',
+            email: expert.email || (expert.user && expert.user.email) || 'Email non spécifié',
+            phone: formattedPhone
+          },
+          phone: formattedPhone,
+          specialization: expert.specialization || expert.specialite || 'Spécialité non spécifiée',
+          currentPosition: expert.currentPosition || 'Non spécifié',
+          experience: expert.experience || 'Non spécifiée',
+          diplomaUrl: expert.diplomaUrl || null,
+          status: 'APPROVED',
+          createdAt: expert.createdAt || expert.created_at || new Date().toISOString()
+        };
 
+        console.log('Formatted expert:', formattedExpert);
+        return formattedExpert;
+      });
+
+      console.log('Final formatted experts data:', formattedExperts);
       setExperts(formattedExperts);
+      
     } catch (error) {
       console.error('Error fetching experts:', error);
       setExperts([]);
@@ -1549,12 +1636,7 @@ const AdminDashboard = () => {
                   )}
                   {activeTab === 'experts' && (
                     <>
-                      Gestion des Experts
-                      <div className="d-flex align-items-center gap-3 mt-2">
-                        <StatusBadge className="success">
-                          {experts.length} Experts
-                        </StatusBadge>
-                      </div>
+                      Experts
                     </>
                   )}
                   {activeTab === 'notifications' && (
@@ -1569,7 +1651,6 @@ const AdminDashboard = () => {
                   {activeTab === 'cars' && 'Gérez votre inventaire de véhicules'}
                   {activeTab === 'promoted-cars' && 'Gérez vos véhicules en promotion'}
                   {activeTab === 'expert-requests' && 'Gérez les demandes d\'expertise en attente'}
-                  {activeTab === 'experts' && 'Gérez les experts de la plateforme'}
                   {activeTab === 'notifications' && 'Gérez les notifications système'}
                 </p>
               </div>
@@ -1596,90 +1677,11 @@ const AdminDashboard = () => {
             {activeTab === 'sales' && <AdminSales />}
             {activeTab === 'settings' && <AdminSettings />}
             {activeTab === 'experts' && (
-              <div className="experts-section">
-                <StyledCard>
-                  <Card.Body>
-                    <div className="table-responsive">
-                      <StyledTable>
-                        <thead>
-                          <tr>
-                            <th>ID</th>
-                            <th>Expert</th>
-                            <th>Spécialité</th>
-                            <th>Contact</th>
-                            <th>Statut</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {experts.map((expert) => (
-                            <tr key={expert.id}>
-                              <td>
-                                <span className="id-badge">#{expert.id}</span>
-                              </td>
-                              <td>
-                                <div className="expert-info">
-                                  <div className="expert-avatar">
-                                    {expert.nom ? expert.nom.charAt(0).toUpperCase() : '?'}
-                                  </div>
-                                  <div className="expert-details">
-                                    <div className="expert-name">
-                                      {expert.nom} {expert.prenom}
-                                    </div>
-                                    <div className="expert-email">{expert.email}</div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td>
-                                <span className="speciality-badge">
-                                  {expert.specialite || 'Non spécifié'}
-                                </span>
-                              </td>
-                              <td>
-                                <div className="contact-info">
-                                  <div className="contact-item">
-                                    <i className="fas fa-envelope"></i>
-                                    {expert.email}
-                                  </div>
-                                  <div className="contact-item">
-                                    <i className="fas fa-phone"></i>
-                                    {expert.telephone || 'Non spécifié'}
-                                  </div>
-                                </div>
-                              </td>
-                              <td>
-                                <StatusBadge 
-                                  className={expert.status === 'ACTIVE' ? 'success' : 'warning'}
-                                >
-                                  {expert.status === 'ACTIVE' ? 'Actif' : 'Inactif'}
-                                </StatusBadge>
-                              </td>
-                              <td>
-                                <div className="action-buttons">
-                                  <ActionButton
-                                    className="secondary"
-                                    onClick={() => handleEditExpert(expert)}
-                                    title="Modifier"
-                                  >
-                                    <i className="fas fa-edit"></i>
-                                  </ActionButton>
-                                  <ActionButton
-                                    className="danger"
-                                    onClick={() => handleDeleteExpert(expert.id)}
-                                    title="Supprimer"
-                                  >
-                                    <i className="fas fa-trash"></i>
-                                  </ActionButton>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </StyledTable>
-                    </div>
-                  </Card.Body>
-                </StyledCard>
-              </div>
+              <AdminExperts 
+                experts={experts}
+                onDelete={handleDeleteExpert}
+                onEdit={handleEditExpert}
+              />
             )}
             {activeTab === 'expert-requests' && (
               <AdminExpertRequests 

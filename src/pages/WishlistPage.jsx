@@ -23,7 +23,7 @@ const WishlistPage = () => {
       <HeaderOne />
 
       {/* Breadcrumb */}
-      <Breadcrumb title={"Wishlist"} />
+      {/* <Breadcrumb title={"Wishlist"} /> */}
 
       {/* Wishlist */}
       <Wishlist />

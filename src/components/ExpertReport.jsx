@@ -31,7 +31,7 @@ const StyledCard = styled(Card)`
 `;
 
 const StyledHeader = styled(Card.Header)`
-  background: linear-gradient(145deg, #1a1a1a 0%, #2c2c2c 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
   color: #fff;
   border-radius: 15px 15px 0 0;
   padding: 25px;
@@ -53,19 +53,19 @@ const StyledBody = styled(Card.Body)`
 `;
 
 const StyledButton = styled(Button)`
-  background: linear-gradient(145deg, #dc3545 0%, #c82333 100%);
+  background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
   border: none;
   padding: 12px 30px;
   font-weight: 600;
   font-size: 1.1rem;
   border-radius: 10px;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.2);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
-    background: linear-gradient(145deg, #c82333 0%, #bd2130 100%);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+    background: linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%);
   }
 
   &:active {
@@ -90,13 +90,13 @@ const StyledForm = styled(Form)`
     background-color: #f8f9fa;
     
     &:focus {
-      border-color: #dc3545;
-      box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15);
+      border-color: #ef4444;
+      box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.15);
       background-color: #fff;
     }
 
     &:hover {
-      border-color: #dc3545;
+      border-color: #ef4444;
     }
   }
 
@@ -110,7 +110,7 @@ const SectionTitle = styled.h4`
   font-weight: 600;
   margin-bottom: 1.5rem;
   padding-bottom: 0.8rem;
-  border-bottom: 2px solid #dc3545;
+  border-bottom: 2px solid #ef4444;
   display: inline-block;
 `;
 
@@ -133,19 +133,19 @@ const LoadingSpinner = styled.div`
   justify-content: center;
   align-items: center;
   height: 100vh;
-  color: #dc3545;
+  color: #ef4444;
 `;
 
 const FileUploadSection = styled.div`
   margin-bottom: 2rem;
   padding: 2rem;
-  border: 2px dashed #dc3545;
+  border: 2px dashed #ef4444;
   border-radius: 10px;
   text-align: center;
   transition: all 0.3s ease;
   
   &:hover {
-    background-color: rgba(220, 53, 69, 0.05);
+    background-color: rgba(239, 68, 68, 0.05);
   }
 
   input[type="file"] {
@@ -154,7 +154,7 @@ const FileUploadSection = styled.div`
 
   .upload-icon {
     font-size: 2rem;
-    color: #dc3545;
+    color: #ef4444;
     margin-bottom: 1rem;
   }
 
