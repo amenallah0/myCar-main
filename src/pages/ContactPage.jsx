@@ -23,7 +23,7 @@ const ContactPage = () => {
       <HeaderOne />
 
       {/* Breadcrumb */}
-      <Breadcrumb title={"Contact"} />
+      {/* <Breadcrumb title={"Contact"} /> */}
 
       {/* Contact Area */}
       <ContactArea />

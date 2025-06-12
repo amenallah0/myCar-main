@@ -23,13 +23,13 @@ const ProjectPage = () => {
       <HeaderOne />
 
       {/* Breadcrumb */}
-      <Breadcrumb title={"Project"} />
+      {/* <Breadcrumb title={"Project"} /> */}
 
       {/* Portfolio One */}
       <PortfolioOne />
 
       {/* Subscribe One */}
-      <SubscribeOne />
+      {/* <SubscribeOne /> */}
 
       {/* Footer Area One */}
       <FooterAreaOne />

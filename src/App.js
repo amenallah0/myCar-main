@@ -36,6 +36,7 @@ import Login from './contexts/Login';
 import SignIn from "./components/SignIn";
 import { NotificationProvider } from './contexts/NotificationContext';
 import setupAxiosInterceptors from './services/axiosConfig';
+import ResetPassword from './components/ResetPassword';
 
 // Composant pour les routes protégées
 const PrivateRoute = ({ children }) => {
@@ -104,6 +105,11 @@ function App() {
             <Route path="/signin" element={
               <PublicRoute>
                 <SignIn />
+              </PublicRoute>
+            } />
+            <Route path="/reset-password" element={
+              <PublicRoute>
+                <ResetPassword />
               </PublicRoute>
             } />
             <Route path="/profile/:username" element={

@@ -200,16 +200,18 @@ const overlayStyle = {
 
 const titleStyle = {
     fontSize: '2.5em',
-    marginBottom: '15px',
+    marginBottom: '1px',
     fontWeight: '600',
     textShadow: '2px 2px 4px rgba(0, 0, 0, 0.3)',
+    color: 'white',
 };
 
 const descriptionStyle = {
-    fontSize: '1.2em',
-    marginBottom: '20px',
+    fontSize: '1.5em',
+    marginBottom: '10px',
     lineHeight: '1.6',
     textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
+    color: 'white',
 };
 
 const dateContainerStyle = {

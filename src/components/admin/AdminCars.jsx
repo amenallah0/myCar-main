@@ -145,13 +145,7 @@ const AdminCars = ({ cars = [], onDelete, onEdit }) => {
                 </td>
                 <td>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <ActionButton 
-                      variant="info" 
-                      onClick={() => onEdit(car)}
-                      title="Modifier"
-                    >
-                      <FaEdit />
-                    </ActionButton>
+                    
                     <ActionButton 
                       variant="danger" 
                       onClick={() => onDelete(car.id)}

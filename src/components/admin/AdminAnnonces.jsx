@@ -147,7 +147,7 @@ const AdminAnnonces = ({ annonces, onDelete, onEdit, onCreate }) => {
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 5 * 1024 * 1024) {
+            if (file.size > 50 * 1024 * 1024) {
                 alert("L'image est trop volumineuse. Veuillez choisir une image de moins de 5 Mo.");
                 return;
             }

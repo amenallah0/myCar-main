@@ -205,10 +205,7 @@ const AdminUsers = ({ users = [], onDelete, onEdit, onCreate, loading, error }) 
                 </Td>
                 <Td>
                   <ActionGroup>
-                    <Button variant="edit" onClick={() => onEdit(user)}>
-                      <FaEdit />
-                      Edit
-                    </Button>
+                    
                     <Button variant="delete" onClick={() => onDelete(user.id)}>
                       <FaTrash />
                       Delete

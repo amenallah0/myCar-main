@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Form, Button, Card, Row, Col, Alert } from 'react-bootstrap';
+import { Container, Form, Button, Card, Row, Col, Alert, Modal } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/userContext';
 import { toast } from 'react-toastify';
@@ -181,6 +181,8 @@ const ExpertReport = () => {
     expertPhone: ''
   });
   const [selectedFile, setSelectedFile] = useState(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState('');
 
   useEffect(() => {
     fetchRequestDetails();
@@ -205,16 +207,21 @@ const ExpertReport = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleOpenEmailModal = (e) => {
     e.preventDefault();
+    setShowEmailModal(true);
+  };
+
+  const handleEmailSubmit = async () => {
+    setShowEmailModal(false);
+    await handleSubmitWithEmail();
+  };
+
+  const handleSubmitWithEmail = async () => {
     try {
       const formDataToSend = new FormData();
-      
-      // Ajout de l'ID de l'utilisateur et de la requête d'expertise
       formDataToSend.append('userId', requestDetails.user.id);
       formDataToSend.append('expertiseRequestId', requestId);
-      
-      // Reste des données du formulaire
       formDataToSend.append('title', formData.title);
       formDataToSend.append('criticalData', formData.criticalData);
       formDataToSend.append('expertiseDate', formData.expertiseDate);
@@ -222,16 +229,16 @@ const ExpertReport = () => {
       formDataToSend.append('expertName', formData.expertName);
       formDataToSend.append('expertEmail', formData.expertEmail);
       formDataToSend.append('expertPhone', formData.expertPhone);
-      
+
       if (selectedFile) {
         formDataToSend.append('file', selectedFile);
       }
+      formDataToSend.append('recipientEmail', recipientEmail);
 
       await apiExpertiseService.submitReport(requestId, formDataToSend);
-      
+
       toast.success("Rapport d'expertise envoyé avec succès au client!");
       navigate(`/profile/${user.username}`);
-      
     } catch (error) {
       toast.error("Erreur lors de l'envoi du rapport: " + (error.response?.data?.message || "Veuillez réessayer"));
       console.error('Detailed error:', error.response?.data);
@@ -295,7 +302,7 @@ const ExpertReport = () => {
                 </InfoCard>
               )}
 
-              <StyledForm onSubmit={handleSubmit}>
+              <StyledForm onSubmit={handleOpenEmailModal}>
                 <Row>
                   <Col md={12}>
                     <Form.Group className="mb-4">
@@ -401,6 +408,32 @@ const ExpertReport = () => {
           </StyledCard>
         )}
       </StyledContainer>
+
+      <Modal show={showEmailModal} onHide={() => setShowEmailModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Entrer l'email du destinataire</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>Email du destinataire</Form.Label>
+            <Form.Control
+              type="email"
+              value={recipientEmail}
+              onChange={e => setRecipientEmail(e.target.value)}
+              placeholder="exemple@domaine.com"
+              required
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowEmailModal(false)}>
+            Annuler
+          </Button>
+          <Button variant="primary" onClick={handleEmailSubmit} disabled={!recipientEmail}>
+            Envoyer le rapport
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       <style jsx>{`
         .expert-report-page {

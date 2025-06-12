@@ -39,7 +39,7 @@ export const UserProvider = ({ children }) => {
       setUser(authData.user);
       setIsAuthenticated(true);
       localStorage.setItem('user', JSON.stringify(authData.user));
-      TokenService.updateLocalTokens(authData.tokens);
+      TokenService.setTokens(authData.tokens);
     }
   };
 

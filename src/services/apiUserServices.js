@@ -13,7 +13,7 @@ export const signInUser = async (email, password) => {
 
         if (response.data && response.data.tokens) {
             // Stocker les tokens
-            TokenService.updateLocalTokens(response.data.tokens);
+            TokenService.setTokens(response.data.tokens);
             
             // Retourner la réponse complète
             return response.data;

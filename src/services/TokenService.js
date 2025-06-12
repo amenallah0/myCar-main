@@ -9,7 +9,15 @@ class TokenService {
         return localStorage.getItem('accessToken');
     }
 
-    static updateLocalTokens(tokens) {
+    static updateLocalAccessToken(token) {
+        localStorage.setItem('accessToken', token);
+    }
+
+    static updateLocalRefreshToken(token) {
+        localStorage.setItem('refreshToken', token);
+    }
+
+    static setTokens(tokens) {
         if (tokens.accessToken) {
             localStorage.setItem('accessToken', tokens.accessToken);
         }

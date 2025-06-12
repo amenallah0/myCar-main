@@ -11,14 +11,14 @@ const SubscribeTwo = () => {
           </Link>
         </div>
         <h3 className="footer-top-title text-white">
-          Subscribe our newsletter for updates
+          Abonnez-vous à notre newsletter pour recevoir nos actualités
         </h3>
         <form className="newsletter-form">
           <div className="form-group">
             <input
               className="form-control"
               type="email"
-              placeholder="Your Email Address"
+              placeholder="Votre adresse e-mail"
               required=""
             />
           </div>

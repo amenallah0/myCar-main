@@ -29,7 +29,7 @@ const CheckoutPage = () => {
       <Checkout />
 
       {/* Subscribe One */}
-      <SubscribeOne />
+      {/* <SubscribeOne /> */}
 
       {/* Footer Area One */}
       <FooterAreaOne />

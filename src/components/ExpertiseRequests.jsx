@@ -389,7 +389,20 @@ const ExpertiseRequests = () => {
 
   const fetchRequests = async () => {
     try {
+      console.log('Fetching requests for expert ID:', user.id);
       const data = await ApiExpertRequestService.getRequestsForExpert(user.id);
+      console.log('Fetched requests data:', data);
+      
+      // Log détaillé de chaque requête
+      data.forEach((request, index) => {
+        console.log(`Request ${index + 1}:`, {
+          id: request.id,
+          status: request.status,
+          car: request.car?.make + ' ' + request.car?.model,
+          user: request.user?.firstName + ' ' + request.user?.lastName
+        });
+      });
+      
       setRequests(data);
       setLoading(false);
     } catch (error) {
@@ -401,11 +414,16 @@ const ExpertiseRequests = () => {
 
   const handleAccept = async (requestId) => {
     try {
-      await ApiExpertRequestService.getRequestsForExpert(user.id);
-      await ApiExpertiseService.approveRequest(requestId);
+      console.log('Accepting request with ID:', requestId);
+      const result = await ApiExpertiseService.approveRequest(requestId);
+      console.log('Approve request result:', result);
+      
       await fetchRequests();
+      console.log('Requests refreshed after approval');
+      
       toast.success('Demande acceptée avec succès');
     } catch (error) {
+      console.error('Error accepting request:', error);
       toast.error('Erreur lors de l\'acceptation de la demande');
     }
   };
@@ -416,6 +434,7 @@ const ExpertiseRequests = () => {
       await fetchRequests();
       toast.success('Demande refusée');
     } catch (error) {
+      console.error('Error rejecting request:', error);
       toast.error('Erreur lors du refus de la demande');
     }
   };
@@ -465,16 +484,6 @@ const ExpertiseRequests = () => {
     }
     return moment(date).format('DD MMMM YYYY à HH:mm');
   };
-
-  useEffect(() => {
-    const fetchRequests = async () => {
-      if (user?.id) {
-        const data = await ApiExpertRequestService.getRequestsForExpert(user.id);
-        setRequests(data);
-      }
-    };
-    fetchRequests();
-  }, [user?.id]);
 
   if (loading) return (
     <Container className="py-5">
@@ -562,12 +571,15 @@ const ExpertiseRequests = () => {
                         icon={
                           request.status === 'ACCEPTED' ? faCheckCircle :
                           request.status === 'REJECTED' ? faTimesCircle :
+                          request.status === 'COMPLETED' ? faCheckCircle :
                           faClock
                         }
                       />
                       {request.status === 'PENDING' ? 'En attente' :
                        request.status === 'ACCEPTED' ? 'Acceptée' :
-                       'Refusée'}
+                       request.status === 'REJECTED' ? 'Refusée' :
+                       request.status === 'COMPLETED' ? 'Rapport soumis' :
+                       'En attente'}
                     </StatusBadge>
 
                     <ClientInfo>

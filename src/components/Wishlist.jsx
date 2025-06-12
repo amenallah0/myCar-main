@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import { FaTrash, FaHeart, FaEye, FaShare, FaRegHeart } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import ApiCarService from "../services/apiCarServices";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -56,13 +59,19 @@ const CardWrapper = styled(motion.div)`
 const ImageContainer = styled.div`
   position: relative;
   overflow: hidden;
-  height: 220px;
+  height: 180px;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
 `;
 
 const CarImage = styled.img`
   width: 100%;
-  height: 100%;
+  max-height: 100%;
   object-fit: cover;
+  object-position: center;
+  display: block;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
   transition: transform 0.5s ease;
   
   ${ImageContainer}:hover & {
@@ -239,11 +248,38 @@ const Wishlist = () => {
   const [favorites, setFavorites] = useState([]);
   const [wishlistCount, setWishlistCount] = useState(0);
   const [showToast, setShowToast] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedFavorites = JSON.parse(localStorage.getItem("favoriteCars")) || [];
-    setFavorites(storedFavorites);
-    setWishlistCount(storedFavorites.length);
+    const validateAndLoadFavorites = async () => {
+      const storedFavorites = JSON.parse(localStorage.getItem("favoriteCars")) || [];
+      const validFavorites = [];
+      let removedCount = 0;
+
+      for (const car of storedFavorites) {
+        try {
+          // Vérifier si la voiture existe encore dans la base de données
+          await ApiCarService.getCarById(car.id);
+          validFavorites.push(car);
+        } catch (error) {
+          // Si la voiture n'existe plus, on l'ignore
+          console.log(`Car with ID ${car.id} no longer exists in database`);
+          removedCount++;
+        }
+      }
+
+      // Mettre à jour localStorage avec les voitures valides uniquement
+      if (removedCount > 0) {
+        localStorage.setItem("favoriteCars", JSON.stringify(validFavorites));
+        toast.info(`${removedCount} véhicule${removedCount > 1 ? 's' : ''} supprimé${removedCount > 1 ? 's' : ''} de votre liste (plus disponible${removedCount > 1 ? 's' : ''})`);
+      }
+
+      setFavorites(validFavorites);
+      setWishlistCount(validFavorites.length);
+      setLoading(false);
+    };
+
+    validateAndLoadFavorites();
   }, []);
 
   const removeFromFavorites = (carId) => {
@@ -251,8 +287,7 @@ const Wishlist = () => {
     setFavorites(updatedFavorites);
     localStorage.setItem("favoriteCars", JSON.stringify(updatedFavorites));
     setWishlistCount(updatedFavorites.length);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    toast.success("Véhicule retiré de votre liste de souhaits");
   };
 
   const shareVehicle = (car) => {
@@ -264,6 +299,28 @@ const Wishlist = () => {
       });
     }
   };
+
+  // Fonction pour gérer les erreurs d'images
+  const handleImageError = (car) => {
+    // Supprimer automatiquement la voiture de la wishlist si l'image ne se charge pas
+    console.log(`Image failed to load for car ${car.id}, removing from wishlist`);
+    removeFromFavorites(car.id);
+  };
+
+  if (loading) {
+    return (
+      <WishlistContainer>
+        <div className="container">
+          <div className="text-center">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Chargement...</span>
+            </div>
+            <p className="mt-3">Vérification de votre liste de souhaits...</p>
+          </div>
+        </div>
+      </WishlistContainer>
+    );
+  }
 
   return (
     <WishlistContainer>
@@ -294,6 +351,7 @@ const Wishlist = () => {
                       <CarImage
                         src={`http://localhost:8081/api/files/download/${car.images?.[0]?.filename}`}
                         alt={`${car.make} ${car.model}`}
+                        onError={() => handleImageError(car)}
                       />
                       <QuickActions>
                         <ActionButton onClick={() => shareVehicle(car)}>
@@ -343,6 +401,17 @@ const Wishlist = () => {
           )}
         </AnimatePresence>
       </div>
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </WishlistContainer>
   );
 };

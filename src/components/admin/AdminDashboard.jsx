@@ -1313,7 +1313,9 @@ const AdminDashboard = () => {
         // Create the formatted expert object
         const formattedExpert = {
           id: expert.id,
+          userId: expert.userId,
           user: {
+            id: expert.userId,
             username: expert.username || (expert.user && expert.user.username) || 'Expert sans nom',
             email: expert.email || (expert.user && expert.user.email) || 'Email non spécifié',
             phone: formattedPhone
@@ -1343,12 +1345,35 @@ const AdminDashboard = () => {
   const handleDeleteExpert = async (expertId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cet expert ?')) {
       try {
-        await ApiExpertService.deleteExpert(expertId);
-        fetchExperts(); // Rafraîchir la liste
-        alert('Expert supprimé avec succès');
+        // Trouver l'expert dans la liste pour obtenir son userId
+        const expert = experts.find(exp => exp.id === expertId);
+        if (!expert) {
+          toast.error("Expert non trouvé");
+          return;
+        }
+
+        // Utiliser le userId au lieu de l'id de l'expert
+        const userIdToDelete = expert.user.id || expert.userId;
+        
+        if (!userIdToDelete) {
+          toast.error("ID utilisateur non trouvé pour cet expert");
+          return;
+        }
+
+        // Supprimer l'utilisateur avec le bon ID
+        await ApiUserService.deleteUser(userIdToDelete);
+        
+        // Mettre à jour la liste locale
+        setExperts(prev => prev.filter(exp => exp.id !== expertId));
+        toast.success('Expert supprimé avec succès');
+        
       } catch (error) {
         console.error('Error deleting expert:', error);
-        alert('Erreur lors de la suppression');
+        toast.error('Erreur lors de la suppression: ' + 
+          (error.response?.data?.message || 'Erreur inconnue'));
+      } finally {
+        // Rafraîchir la liste des experts
+        fetchExperts();
       }
     }
   };

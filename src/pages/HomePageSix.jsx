@@ -61,7 +61,7 @@ const HomePageSix = () => {
       <BlogAreaTwo />
 
       {/* Subscribe Two */}
-      <SubscribeTwo />
+      {/* <SubscribeTwo /> */}
 
       {/* Footer Area Four */}
       <FooterAreaFour />
