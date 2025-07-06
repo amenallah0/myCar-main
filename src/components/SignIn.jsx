@@ -239,13 +239,13 @@ const SignIn = () => {
                         >
                             Se connecter
                         </button>
-                        <button 
+                        {/* <button 
                             type="button" 
                             style={{...styles.button, ...styles.googleButton}}
                             onClick={() => toast.info('Fonctionnalité Google en cours de développement')}
                         >
                             <FaGoogle /> Continuer avec Google
-                        </button>
+                        </button> */}
                     </form>
                     <div style={styles.signupText}>
                         Pas encore de compte ?{' '}

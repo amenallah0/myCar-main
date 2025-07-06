@@ -34,6 +34,42 @@ export const NotificationProvider = ({ children }) => {
     }
   };
 
+  const markAsRead = async (notificationId) => {
+    try {
+      await ApiNotificationService.markAsRead(notificationId);
+      // Mettre à jour l'état local
+      setNotifications((prev) =>
+        prev.map((notif) =>
+          notif.id === notificationId ? { ...notif, isRead: true } : notif
+        )
+      );
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      // Fallback: mettre à jour localement même si l'API échoue
+      setNotifications((prev) =>
+        prev.map((notif) =>
+          notif.id === notificationId ? { ...notif, isRead: true } : notif
+        )
+      );
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await ApiNotificationService.markAllAsRead();
+      // Mettre à jour l'état local
+      setNotifications((prev) =>
+        prev.map((notif) => ({ ...notif, isRead: true }))
+      );
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      // Fallback: mettre à jour localement même si l'API échoue
+      setNotifications((prev) =>
+        prev.map((notif) => ({ ...notif, isRead: true }))
+      );
+    }
+  };
+
   useEffect(() => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000);
@@ -41,7 +77,13 @@ export const NotificationProvider = ({ children }) => {
   }, []);
 
   return (
-    <NotificationContext.Provider value={{ notifications, addNotification, fetchNotifications }}>
+    <NotificationContext.Provider value={{ 
+      notifications, 
+      addNotification, 
+      fetchNotifications, 
+      markAsRead, 
+      markAllAsRead 
+    }}>
       {children}
     </NotificationContext.Provider>
   );

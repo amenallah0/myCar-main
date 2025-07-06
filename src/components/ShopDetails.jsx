@@ -444,10 +444,6 @@ const ShopDetails = () => {
                     <span className="feature-label">Capacité du réservoir</span>
                     <span className="feature-value">{car.fuelTankCapacity}L</span>
                   </div>
-                  <div className="feature-card">
-                    <span className="feature-label">Type de carburant</span>
-                    <span className="feature-value">{car.fuelType || 'Non spécifié'}</span>
-                  </div>
                 </div>
               </div>
 
@@ -794,7 +790,7 @@ const ShopDetails = () => {
                   disabled={isLoading}
                 >
                     <i className="fas fa-chart-line"></i>
-                    {isLoading ? 'Estimation...' : 'Estimer le prix avec notre modèle IA'}
+                    {isLoading ? 'Estimation...' : 'Estimer le prix'}
                 </button>
                 </div>
                 

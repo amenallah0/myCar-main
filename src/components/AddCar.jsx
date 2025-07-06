@@ -470,14 +470,14 @@ function AddCar() {
                       <Form.Group controlId="price" className="mb-4">
                         <Form.Label>
                           <i className="fas fa-euro-sign me-2"></i>
-                          Prix (€)
+                          Prix (TND)
                         </Form.Label>
                         <Form.Control
                           type="number"
                           name="price"
                           value={formData.car.price}
                           onChange={handleChange}
-                          placeholder="Ex: 15000"
+                          placeholder="Ex: 30000"
                           required
                           className="modern-input"
                         />

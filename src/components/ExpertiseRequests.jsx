@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { 
   FaCar, FaUser, FaCalendarAlt, FaCheck, FaTimes, 
   FaSpinner, FaEnvelope, FaPhone, FaMapMarkerAlt,
-  FaTools, FaClipboardList, FaSync, FaArrowUp, FaFileAlt
+  FaTools, FaClipboardList, FaSync, FaArrowUp, FaFileAlt, FaDownload
 } from 'react-icons/fa';
 import moment from 'moment';
 import HeaderFive from './HeaderFive';
@@ -17,6 +17,7 @@ import ApiExpertiseService from '../services/apiExpertiseService';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheckCircle, faTimesCircle, faClock } from '@fortawesome/free-solid-svg-icons';
+import axios from 'axios';
 
 moment.locale('fr');
 
@@ -270,6 +271,18 @@ const ActionButtonBasic = styled.button`
       transform: translateY(-2px);
     }
   `}
+
+  ${props => props.variant === 'download' && `
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: white;
+    border: none;
+    
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 3px 10px rgba(34, 197, 94, 0.2);
+    }
+  `}
 `;
 
 const ButtonText = styled.span`
@@ -436,6 +449,46 @@ const ExpertiseRequests = () => {
     } catch (error) {
       console.error('Error rejecting request:', error);
       toast.error('Erreur lors du refus de la demande');
+    }
+  };
+
+  const handleDownloadReport = async (requestId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8081/api/expertise-requests/${requestId}/report/download`,
+        { 
+          responseType: 'blob',
+          headers: {
+            'Accept': 'application/pdf,application/octet-stream,image/*'
+          }
+        }
+      );
+      
+      const contentType = response.headers['content-type'];
+      let filename = response.headers['content-disposition'] ? 
+        response.headers['content-disposition'].split('filename=')[1].replace(/["']/g, '') :
+        `rapport-expertise-${requestId}${contentType.includes('pdf') ? '.pdf' : '.jpg'}`;
+
+      const blob = new Blob([response.data], { type: contentType });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Rapport téléchargé avec succès');
+    } catch (err) {
+      console.error('Error downloading report:', err);
+      if (err.response?.status === 404) {
+        toast.error('Le rapport n\'est pas disponible pour le téléchargement');
+      } else {
+        toast.error('Erreur lors du téléchargement du rapport: ' + (err.message || 'Erreur inconnue'));
+      }
     }
   };
 
@@ -636,6 +689,21 @@ const ExpertiseRequests = () => {
                           <FaFileAlt size={14} />
                           <span>Rédiger le rapport</span>
                         </ActionButton>
+                      )}
+
+                      {request.status === 'COMPLETED' && request.report && (
+                        <ActionButtonBasic
+                          variant="primary"
+                          onClick={() => handleDownloadReport(request.id)}
+                          style={{
+                            background: 'linear-gradient(135deg, #ef4444 0%, #991b1b 100%)',
+                            color: 'white',
+                            border: 'none'
+                          }}
+                        >
+                          <FaDownload size={14} />
+                          <span>Voir le rapport</span>
+                        </ActionButtonBasic>
                       )}
                     </ActionButtonGroup>
                   </Card.Body>

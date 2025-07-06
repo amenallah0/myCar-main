@@ -25,8 +25,19 @@ const HeaderFive = () => {
     const storedFavorites = JSON.parse(localStorage.getItem('favoriteCars')) || [];
     setWishlistCount(storedFavorites.length);
 
+    // Event listener for wishlist updates
+    const handleWishlistUpdate = () => {
+      const updatedFavorites = JSON.parse(localStorage.getItem('favoriteCars')) || [];
+      setWishlistCount(updatedFavorites.length);
+    };
+
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('wishlistUpdated', handleWishlistUpdate);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('wishlistUpdated', handleWishlistUpdate);
+    };
   }, [handleScroll]);
 
   const handleLogout = () => {
@@ -74,26 +85,74 @@ const HeaderFive = () => {
       fontWeight: '500',
     };
 
+    const wishlistButtonStyle = {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '10px',
+      borderRadius: '12px',
+      backgroundColor: '#f8f9fa',
+      border: '1px solid #e5e7eb',
+      textDecoration: 'none',
+      position: 'relative',
+      transition: 'all 0.3s ease',
+      width: '44px',
+      height: '44px',
+    };
+
     const countStyle = {
       backgroundColor: '#ef4444',
       color: 'white',
       padding: '2px 6px',
       borderRadius: '50%',
-      fontSize: '12px',
+      fontSize: '10px',
       position: 'absolute',
-      top: '-8px',
-      right: '-8px',
+      top: '-2px',
+      right: '-2px',
       fontWeight: '600',
+      minWidth: '18px',
+      height: '18px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      border: '2px solid white',
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+      animation: wishlistCount > 0 ? 'pulse 2s infinite' : 'none',
     };
 
     const menuItemStyle = {
       position: 'relative',
-      marginRight: '20px',
+      marginRight: '15px',
     };
 
     return (
       <div className="header-right-element">
         <ul style={{ display: 'flex', alignItems: 'center', margin: 0, padding: 0, listStyle: 'none', gap: '15px' }}>
+          {(!user || user.role !== 'ROLE_ADMIN' && user.role !== 'ADMIN') && (
+            <>
+              <li style={menuItemStyle}>
+                <Link 
+                  to="/wishlist" 
+                  style={wishlistButtonStyle}
+                  className="wishlist-button hover-effect"
+                  title={`${wishlistCount} véhicule${wishlistCount > 1 ? 's' : ''} en favoris`}
+                >
+                  <i 
+                    className="far fa-heart" 
+                    style={{ 
+                      color: wishlistCount > 0 ? '#ef4444' : '#6b7280', 
+                      fontSize: '18px',
+                      transition: 'all 0.3s ease'
+                    }}
+                  ></i>
+                  {wishlistCount > 0 && <span style={countStyle}>{wishlistCount > 99 ? '99+' : wishlistCount}</span>}
+                </Link>
+              </li>
+              <li style={menuItemStyle}>
+                <NotificationDropdown />
+              </li>
+            </>
+          )}
           <li style={{ position: 'relative' }}>
             {isAuthenticated && user ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -133,27 +192,6 @@ const HeaderFive = () => {
               </Link>
             )}
           </li>
-          {(!user || user.role !== 'ROLE_ADMIN' && user.role !== 'ADMIN') && (
-            <>
-              <li style={menuItemStyle}>
-                <Link 
-                  to="/wishlist" 
-                  style={{
-                    ...userMenuStyle,
-                    backgroundColor: '#f8f9fa',
-                    border: '1px solid #e5e7eb',
-                  }} 
-                  className="hover-effect"
-                >
-                  <i className="far fa-heart" style={{ color: '#ef4444', marginRight: '5px' }}></i>
-                  {wishlistCount > 0 && <span style={countStyle}>{wishlistCount}</span>}
-                </Link>
-              </li>
-              <li style={menuItemStyle}>
-                <NotificationDropdown />
-              </li>
-            </>
-          )}
         </ul>
       </div>
     );
@@ -359,6 +397,23 @@ const HeaderFive = () => {
 
         .admin-button:hover {
           background-color: #dc2626 !important;
+        }
+
+        .wishlist-button:hover {
+          background-color: rgba(239, 68, 68, 0.05) !important;
+          border-color: #ef4444 !important;
+          transform: translateY(-2px);
+        }
+
+        .wishlist-button:hover i {
+          color: #ef4444 !important;
+          transform: scale(1.1);
+        }
+
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.2); }
+          100% { transform: scale(1); }
         }
       `}</style>
     </header>

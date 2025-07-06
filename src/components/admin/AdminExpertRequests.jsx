@@ -67,22 +67,105 @@ const FileLink = styled.a`
 `;
 
 const ActionButton = styled(Button)`
-  padding: 8px 16px;
-  font-size: 0.9em;
-  font-weight: 500;
-  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 0.85em;
+  font-weight: 600;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
+  gap: 8px;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  min-width: 110px;
+  justify-content: center;
   
-  &:first-child {
-    margin-right: 8px;
+  &:not(:last-child) {
+    margin-right: 10px;
   }
 
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  &.approve-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-color: #10b981;
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    
+    &:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+      border-color: #059669;
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  &.reject-btn {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border-color: #ef4444;
+    color: white;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    
+    &:hover {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+      border-color: #dc2626;
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  svg {
+    font-size: 1em;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover svg {
+    transform: scale(1.1);
+  }
+`;
+
+const ActionButtonGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  
+  @media (min-width: 768px) {
+    flex-direction: row;
+    justify-content: center;
+  }
+`;
+
+const QuickActionBadge = styled.div`
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: inline-block;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  animation: pulse 2s infinite;
+  
+  @keyframes pulse {
+    0% { box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3); }
+    50% { box-shadow: 0 4px 16px rgba(99, 102, 241, 0.5); }
+    100% { box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3); }
   }
 `;
 
@@ -222,21 +305,35 @@ const AdminExpertRequests = ({ requests, onApprove, onReject }) => {
                   </StatusBadge>
                 </td>
                 <td>
-                  {(!request.status || request.status === 'PENDING') && (
-                    <>
-                      <ActionButton 
-                        variant="outline-success" 
-                        onClick={() => handleApprove(request.id)}
-                      >
-                        <FaCheckCircle /> Approuver
-                      </ActionButton>
-                      <ActionButton 
-                        variant="outline-danger"
-                        onClick={() => onReject(request.id)}
-                      >
-                        <FaTimesCircle /> Rejeter
-                      </ActionButton>
-                    </>
+                  {(!request.status || request.status === 'PENDING') ? (
+                    <ActionButtonGroup>
+                      <QuickActionBadge>Action requise</QuickActionBadge>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <ActionButton 
+                          className="approve-btn"
+                          onClick={() => handleApprove(request.id)}
+                          title="Approuver cette demande d'expert"
+                        >
+                          <FaCheckCircle /> Approuver
+                        </ActionButton>
+                        <ActionButton 
+                          className="reject-btn"
+                          onClick={() => onReject(request.id)}
+                          title="Rejeter cette demande d'expert"
+                        >
+                          <FaTimesCircle /> Rejeter
+                        </ActionButton>
+                      </div>
+                    </ActionButtonGroup>
+                  ) : (
+                    <div style={{ 
+                      textAlign: 'center', 
+                      color: '#6b7280', 
+                      fontStyle: 'italic',
+                      fontSize: '0.9em'
+                    }}>
+                      {request.status === 'APPROVED' ? '✅ Approuvée' : '❌ Rejetée'}
+                    </div>
                   )}
                 </td>
               </tr>

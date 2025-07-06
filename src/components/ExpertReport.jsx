@@ -289,12 +289,25 @@ const ExpertReport = () => {
                       </SectionTitle>
                       {requestDetails?.user && (
                         <>
-                          <p><strong>Nom:</strong> {requestDetails.user.firstName} {requestDetails.user.lastName}</p>
-                          <p><strong>Email:</strong> {requestDetails.user.email}</p>
+                          <p><strong>Nom:</strong> {requestDetails.user?.firstName && requestDetails.user?.lastName 
+                            ? `${requestDetails.user.firstName} ${requestDetails.user.lastName}` 
+                            : requestDetails.user?.username || 'Nom non disponible'}</p>
+                          <p><strong>Email:</strong> {requestDetails.user?.email || 'Email non disponible'}</p>
                           {requestDetails.user.phone && (
                             <p><strong>Téléphone:</strong> {requestDetails.user.phone}</p>
                           )}
-                          <p><strong>Date de la demande:</strong> {new Date(requestDetails.createdAt).toLocaleDateString('fr-FR')}</p>
+                          <p><strong>Date de la demande:</strong> {requestDetails?.createdAt || requestDetails?.requestDate 
+                            ? new Date(Array.isArray(requestDetails.createdAt || requestDetails.requestDate) 
+                              ? new Date(
+                                  (requestDetails.createdAt || requestDetails.requestDate)[0], 
+                                  (requestDetails.createdAt || requestDetails.requestDate)[1] - 1, 
+                                  (requestDetails.createdAt || requestDetails.requestDate)[2],
+                                  (requestDetails.createdAt || requestDetails.requestDate)[3] || 0,
+                                  (requestDetails.createdAt || requestDetails.requestDate)[4] || 0
+                                )
+                              : (requestDetails.createdAt || requestDetails.requestDate)
+                            ).toLocaleDateString('fr-FR')
+                            : 'Date non disponible'}</p>
                         </>
                       )}
                     </Col>

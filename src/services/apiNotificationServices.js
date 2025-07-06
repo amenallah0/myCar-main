@@ -26,6 +26,28 @@ const ApiNotificationService = {
     }
   },
 
+  // Fonction pour marquer une notification comme lue
+  markAsRead: async (id) => {
+    try {
+      const response = await axios.put(`${API_URL}/api/notifications/${id}/read`);
+      return response.data;
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
+  },
+
+  // Fonction pour marquer toutes les notifications comme lues
+  markAllAsRead: async () => {
+    try {
+      const response = await axios.put(`${API_URL}/api/notifications/mark-all-read`);
+      return response.data;
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      throw error;
+    }
+  },
+
   // Fonction pour supprimer une notification
   deleteNotification: async (id) => {
     try {
