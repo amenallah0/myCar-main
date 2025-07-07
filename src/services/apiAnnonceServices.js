@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8081/api/annonces'; // Remplacez par votre URL d'API
+const API_URL = process.env.REACT_APP_API_URL + '/api/annonces'; // Remplacez par votre URL d'API
 
 const ApiAnnonceService = {
     getAllAnnonces: async () => {
