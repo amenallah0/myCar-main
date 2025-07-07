@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { axiosInstance } from './apiUserServices';
 
-const API_URL = 'http://localhost:8081/api';
-const EXPERTISE_REQUEST_URL = 'http://localhost:8081/api/expertise-requests';
+const API_URL = process.env.REACT_APP_API_URL + '/api';
+const EXPERTISE_REQUEST_URL = process.env.REACT_APP_API_URL + '/api/expertise-requests';
+
 
 const apiExpertiseService = {
     getExpertiseRequest: async (id) => {
