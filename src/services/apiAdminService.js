@@ -1,6 +1,6 @@
 import { axiosInstance } from './apiUserServices';
 
-const API_URL = 'http://localhost:8081/api';
+const API_URL = process.env.REACT_APP_API_URL + '/api';
 
 const apiAdminService = {
   // User Management
