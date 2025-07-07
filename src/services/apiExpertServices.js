@@ -1,7 +1,8 @@
 import { axiosInstance } from './apiUserServices';
 
-const API_URL = 'http://localhost:8081/api';
-const USER_API_URL = 'http://localhost:8081/api/users';
+const API_URL = process.env.REACT_APP_API_URL + '/api';
+const USER_API_URL = process.env.REACT_APP_API_URL + '/api/users';
+
 
 const ApiExpertService = {
   getAllExperts: async () => {
