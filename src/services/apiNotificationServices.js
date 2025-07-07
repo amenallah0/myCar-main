@@ -1,7 +1,7 @@
 import axios from 'axios';
 import api from './apiUserServices';
 
-const API_URL = 'http://localhost:8081';
+const API_URL = process.env.REACT_APP_API_URL + '/api';
 
 const ApiNotificationService = {
   // Fonction pour créer une notification
