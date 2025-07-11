@@ -1,11 +1,13 @@
 // API Configuration
 export const API_CONFIG = {
   BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:8081',
+  TUNPLATE_URL: process.env.REACT_APP_TUNPLATE_URL || 'http://localhost:5000',
   ENDPOINTS: {
     FILES_DOWNLOAD: '/api/files/download',
     EXPERTISE_REQUESTS: '/api/expertise-requests',
     CONTACT: '/api/contact',
-    PASSWORD_RESET: '/api/password'
+    PASSWORD_RESET: '/api/password',
+    TUNPLATE_UPLOAD_CAR: '/api/upload-car'
   }
 };
 
@@ -18,6 +20,11 @@ export const getImageUrl = (filename) => {
 // Helper function to construct API URLs
 export const getApiUrl = (endpoint, path = '') => {
   return `${API_CONFIG.BASE_URL}${endpoint}${path}`;
+};
+
+// Helper function to construct TunPlateRemover URLs
+export const getTunPlateUrl = (endpoint, path = '') => {
+  return `${API_CONFIG.TUNPLATE_URL}${endpoint}${path}`;
 };
 
 export default API_CONFIG;

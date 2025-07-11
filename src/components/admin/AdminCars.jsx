@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { FaEdit, FaTrash, FaCarSide, FaSearch, FaFilter } from 'react-icons/fa';
 import { DashboardCard, PageHeader, PageTitle, StyledTable, ActionButton, StatusBadge } from './styles/SharedStyles';
 import { Form, InputGroup, Button, Pagination } from 'react-bootstrap';
+import { getImageUrl } from '../../config/apiConfig';
 
 const AdminCars = ({ cars = [], onDelete, onEdit }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -170,7 +171,7 @@ const AdminCars = ({ cars = [], onDelete, onEdit }) => {
                     <td>
                       {car.images && car.images.length > 0 ? (
                         <img
-                          src={`https://mycarapi-1.onrender.com/api/files/download/${car.images[0]?.filename}`}
+                          src={getImageUrl(car.images[0]?.filename)}
                           alt={`${car.make} ${car.model}`}
                           style={{ 
                             width: '60px', 

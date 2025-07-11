@@ -8,6 +8,7 @@ import AdminUsers from './AdminUsers';
 import AdminCars from './AdminCars';
 import AdminSales from './AdminSales';
 import AdminSettings from './AdminSettings';
+import { getImageUrl } from '../../config/apiConfig';
 import AdminExpertRequests from './AdminExpertRequests';
 import ApiCarService from '../../services/apiCarServices';
 import ApiUserService from '../../services/apiUserServices';
@@ -355,7 +356,7 @@ const AdminPromotedCars = ({ promotedCars, setPromotedCars }) => {
                       <td>
                         <div className="car-image-wrapper">
                   <img
-                    src={`https://mycarapi-1.onrender.com/api/files/download/${car.images[0]?.filename}`}
+                    src={getImageUrl(car.images[0]?.filename)}
                     alt={`${car.make} ${car.model}`}
                             className="car-thumbnail"
                   />
@@ -424,7 +425,7 @@ const AdminPromotedCars = ({ promotedCars, setPromotedCars }) => {
                     <div className="car-image-container">
                   <Card.Img
                     variant="top"
-                    src={`https://mycarapi-1.onrender.com/api/files/download/${car.images[0]?.filename}`}
+                    src={getImageUrl(car.images[0]?.filename)}
                         className="car-image"
                   />
                       <div className="promotion-tag">

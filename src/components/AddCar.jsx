@@ -3,6 +3,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Form, Button, Container, Row, Col, Card } from "react-bootstrap";
 import ApiCarService from "./../services/apiCarServices";
+import TunPlateService from "./../services/tunPlateService";
 import { motion } from "framer-motion";
 import { useUser } from '../contexts/userContext';
 import { useNavigate } from 'react-router-dom';
@@ -72,15 +73,36 @@ function AddCar() {
     images: [],
     imagePreviews: [],
   });
+  
+  const [tunPlateAvailable, setTunPlateAvailable] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Vérification de l'authentification au chargement du composant
+  // Vérification de l'authentification et du service TunPlateRemover au chargement
   useEffect(() => {
     if (!isAuthenticated || !user) {
       toast.error('Vous devez être connecté pour ajouter une annonce');
       navigate('/signin');
       return;
     }
+
+    // Vérifier la disponibilité du service TunPlateRemover
+    const checkTunPlateService = async () => {
+      try {
+        const isAvailable = await TunPlateService.checkServiceAvailability();
+        setTunPlateAvailable(isAvailable);
+        if (isAvailable) {
+          console.log('✅ Service TunPlateRemover disponible - Les plaques seront automatiquement floutées');
+        } else {
+          console.warn('⚠️ Service TunPlateRemover non disponible - Images ajoutées sans traitement');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la vérification du service TunPlateRemover:', error);
+        setTunPlateAvailable(false);
+      }
+    };
+
+    checkTunPlateService();
   }, [isAuthenticated, user, navigate]);
 
   const handleChange = (e) => {
@@ -159,45 +181,110 @@ function AddCar() {
       return;
     }
 
+    // Vérification des images
+    if (formData.images.length === 0) {
+      toast.error('Veuillez ajouter au moins une image de la voiture');
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
-        await ApiCarService.addCarWithImagesToUser(user.id, formData.car, formData.images);
+      let result;
+      
+      if (tunPlateAvailable) {
+        // Utiliser le service TunPlateRemover pour flouter automatiquement les plaques
+        toast.info('Traitement des images en cours... (floutage automatique des plaques)');
+        result = await TunPlateService.addCarWithBlurredPlates(user.id, formData.car, formData.images);
+        toast.success('Voiture ajoutée avec succès! Les plaques d\'immatriculation ont été automatiquement floutées.');
+      } else {
+        // Fallback : utiliser directement l'API backend
+        toast.warning('Service de floutage non disponible - Images ajoutées sans traitement des plaques');
+        result = await ApiCarService.addCarWithImagesToUser(user.id, formData.car, formData.images);
         toast.success('Voiture ajoutée avec succès!');
-        
-        // Réinitialiser le formulaire
-        setFormData({
+      }
+      
+      console.log('Résultat de l\'ajout:', result);
+      
+      // Réinitialiser le formulaire
+      setFormData({
+        car: {
+          make: '',
+          model: '',
+          color: '',
+          year: '',
+          powerRating: '',
+          numberOfDoors: '',
+          fuelTankCapacity: '',
+          maximumSpeed: '',
+          mileage: '',
+          options: '',
+          price: '',
+        },
+        images: [],
+        imagePreviews: [],
+      });
+      fileInputRef.current.value = null;
+      
+      // Rafraîchir les voitures du profil si la fonction est disponible
+      if (window.refreshUserCars) {
+        window.refreshUserCars();
+      }
+      
+      // Rediriger vers le profil après un court délai
+      setTimeout(() => {
+        navigate(`/profile/${user.username}`);
+      }, 2000); // Augmenté pour laisser le temps de lire le message
+      
+    } catch (error) {
+      console.error('Error adding car:', error);
+      
+      if (tunPlateAvailable && error.message.includes('TunPlateRemover')) {
+        // Si le service TunPlateRemover échoue, essayer le fallback
+        toast.warning('Erreur avec le service de floutage, tentative sans traitement...');
+        try {
+          await ApiCarService.addCarWithImagesToUser(user.id, formData.car, formData.images);
+          toast.success('Voiture ajoutée avec succès (sans traitement des plaques)!');
+          
+          // Même logique de réinitialisation et redirection
+          setFormData({
             car: {
-                make: '',
-                model: '',
-                color: '',
-                year: '',
-                powerRating: '',
-                numberOfDoors: '',
-                fuelTankCapacity: '',
-                maximumSpeed: '',
-                mileage: '',
-                options: '',
-                price: '',
+              make: '',
+              model: '',
+              color: '',
+              year: '',
+              powerRating: '',
+              numberOfDoors: '',
+              fuelTankCapacity: '',
+              maximumSpeed: '',
+              mileage: '',
+              options: '',
+              price: '',
             },
             images: [],
             imagePreviews: [],
-        });
-        fileInputRef.current.value = null;
-        
-        // Rafraîchir les voitures du profil si la fonction est disponible
-        if (window.refreshUserCars) {
-          window.refreshUserCars();
+          });
+          fileInputRef.current.value = null;
+          
+          if (window.refreshUserCars) {
+            window.refreshUserCars();
+          }
+          
+          setTimeout(() => {
+            navigate(`/profile/${user.username}`);
+          }, 2000);
+          
+        } catch (fallbackError) {
+          toast.error('Erreur lors de l\'ajout de la voiture');
+          console.error('Fallback error:', fallbackError);
         }
-        
-        // Rediriger vers le profil après un court délai
-        setTimeout(() => {
-          navigate(`/profile/${user.username}`);
-        }, 1500);
-        
-    } catch (error) {
+      } else {
         toast.error('Erreur lors de l\'ajout de la voiture');
-        console.error('Error adding car:', error);
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-};
+  };
 
   // Affichage d'un loader si l'utilisateur n'est pas encore chargé
   if (!user) {
@@ -577,10 +664,38 @@ function AddCar() {
             </Row>
 
             <div className="form-actions">
-              <Button type="submit" className="submit-button">
-                <i className="fas fa-paper-plane me-2"></i>
-                Publier l'Annonce
-                <div className="button-shine"></div>
+              {/* Indicateur du statut du service TunPlateRemover */}
+              <div className="service-status">
+                {tunPlateAvailable ? (
+                  <div className="status-available">
+                    <i className="fas fa-shield-alt me-2"></i>
+                    Service de floutage automatique des plaques activé
+                  </div>
+                ) : (
+                  <div className="status-unavailable">
+                    <i className="fas fa-exclamation-triangle me-2"></i>
+                    Service de floutage non disponible - Images ajoutées sans traitement
+                  </div>
+                )}
+              </div>
+              
+              <Button 
+                type="submit" 
+                className="submit-button"
+                disabled={isSubmitting || formData.images.length === 0}
+              >
+                {isSubmitting ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin me-2"></i>
+                    {tunPlateAvailable ? 'Traitement des images...' : 'Ajout en cours...'}
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-paper-plane me-2"></i>
+                    Publier l'Annonce
+                    <div className="button-shine"></div>
+                  </>
+                )}
               </Button>
             </div>
           </Form>
@@ -1036,6 +1151,30 @@ function AddCar() {
           border-top: 2px solid #f1f5f9;
         }
 
+        .service-status {
+          margin-bottom: 1.5rem;
+          padding: 1rem;
+          border-radius: 12px;
+          font-size: 0.95rem;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+        }
+
+        .status-available {
+          background: linear-gradient(135deg, #d4edda, #c3e6cb);
+          color: #155724;
+          border: 1px solid #c3e6cb;
+        }
+
+        .status-unavailable {
+          background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+          color: #856404;
+          border: 1px solid #ffeaa7;
+        }
+
         .submit-button {
           background: linear-gradient(135deg, #ef4444, #991b1b);
           color: white;
@@ -1052,24 +1191,11 @@ function AddCar() {
           align-items: center;
         }
 
-        .submit-button:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 12px 35px rgba(239, 68, 68, 0.4);
-          background: linear-gradient(135deg, #991b1b, #ef4444);
-        }
-
-        .button-shine {
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-          transition: 0.6s;
-        }
-
-        .submit-button:hover .button-shine {
-          left: 100%;
+        .submit-button:disabled {
+          background: linear-gradient(135deg, #9ca3af, #6b7280);
+          box-shadow: 0 4px 15px rgba(156, 163, 175, 0.3);
+          cursor: not-allowed;
+          transform: none;
         }
 
         /* Responsive Design */

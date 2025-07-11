@@ -3,6 +3,7 @@ import ApiCarService from "../services/apiCarServices";
 import { Link } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import moment from 'moment';
+import { getImageUrl } from '../config/apiConfig';
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
@@ -73,7 +74,7 @@ const HeroSix = ({ hasAnnonces }) => {
          <div className="card-image-container">
            {!imageError ? (
              <img
-               src={`https://mycarapi-1.onrender.com/api/files/download/${car.images[0]?.filename}`}
+               src={getImageUrl(car.images[0]?.filename)}
                alt={`${car.make} ${car.model}`}
                className="card-image"
                loading="lazy"

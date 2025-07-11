@@ -6,6 +6,7 @@ import { FaUsers, FaCar, FaUserTie, FaMoneyBillWave, FaCalendarAlt, FaClock, FaS
 import moment from 'moment';
 import 'moment/locale/fr';
 import { motion } from 'framer-motion';
+import { getImageUrl } from '../../config/apiConfig';
 
 moment.locale('fr');
 
@@ -259,7 +260,7 @@ const PromotedCars = ({ cars }) => (
     {cars?.map((car, index) => (
       <PromotedCarItem key={car.id || index}>
         <img
-          src={`https://mycarapi-1.onrender.com/api/files/download/${car.images[0]?.filename}`}
+          src={getImageUrl(car.images[0]?.filename)}
           alt={`${car.make} ${car.model}`}
         />
         <div className="car-info">
