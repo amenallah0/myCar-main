@@ -4,6 +4,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Form, Button, Container, Row, Col, Card } from "react-bootstrap";
 import ApiCarService from "./../services/apiCarServices";
 import TunPlateService from "./../services/tunPlateService";
+import TunPlateTestService from "./../services/tunPlateTestService";
 import { motion } from "framer-motion";
 import { useUser } from '../contexts/userContext';
 import { useNavigate } from 'react-router-dom';
@@ -283,6 +284,33 @@ function AddCar() {
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Fonction de test pour le floutage uniquement
+  const handleTestBlur = async () => {
+    if (formData.images.length === 0) {
+      toast.error('Veuillez sélectionner au moins une image pour tester le floutage');
+      return;
+    }
+
+    try {
+      toast.info('Test de floutage en cours...');
+      console.log('🧪 Début du test de floutage');
+      
+      const result = await TunPlateTestService.testBlurOnly(formData.images);
+      
+      console.log('🧪 Résultat du test:', result);
+      
+      if (result.success) {
+        toast.success(`✅ Test réussi! ${result.images_processed} image(s) traitée(s), ${result.plates_detected} plaque(s) détectée(s)`);
+      } else {
+        toast.warning(`⚠️ Test terminé avec avertissements: ${result.message}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Erreur lors du test de floutage:', error);
+      toast.error('Erreur lors du test de floutage: ' + error.message);
     }
   };
 
@@ -678,6 +706,29 @@ function AddCar() {
                   </div>
                 )}
               </div>
+              
+              {/* Bouton de test pour le floutage */}
+              {formData.images.length > 0 && (
+                <Button 
+                  type="button" 
+                  variant="outline-info"
+                  className="test-blur-button mb-3"
+                  onClick={handleTestBlur}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '2px dashed #17a2b8',
+                    backgroundColor: 'transparent',
+                    color: '#17a2b8',
+                    fontWeight: '500',
+                    borderRadius: '10px',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  <i className="fas fa-flask me-2"></i>
+                  🧪 Tester le floutage des plaques
+                </Button>
+              )}
               
               <Button 
                 type="submit" 
