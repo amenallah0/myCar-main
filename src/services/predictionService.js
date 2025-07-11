@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_CAR_PRICE_API_URL || 'https://flask-6-6v7r.onrender.com';
+import { API_CONFIG, getCarPriceApiUrl } from '../config/apiConfig';
 
 const PredictionService = {
   getPredictedPrice: async (carData) => {
@@ -16,7 +16,7 @@ const PredictionService = {
         }
       }
 
-      const response = await fetch(`${API_URL}/predict`, {
+      const response = await fetch(getCarPriceApiUrl(API_CONFIG.ENDPOINTS.CAR_PRICE_PREDICT), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ const PredictionService = {
       return data.predicted_price;
     } catch (error) {
       console.error('Error predicting price:', error);
-      console.error('API URL used:', API_URL);
+      console.error('API URL used:', getCarPriceApiUrl(API_CONFIG.ENDPOINTS.CAR_PRICE_PREDICT));
       console.error('Car data sent:', carData);
       
       if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
