@@ -15,6 +15,7 @@ import "swiper/css/autoplay";
 // Import required modules
 import { getAllCars } from '../services/apiCarServices';
 import apiCarServices from '../services/apiCarServices';
+import { getImageUrl } from '../config/apiConfig';
 
 const ShopArea = () => {
   const [range, setRange] = useState([0, 100]);
@@ -142,7 +143,7 @@ const ShopArea = () => {
       <div style={{ height: '300px', overflow: 'hidden' }}>
         {images && images[0]?.filename ? (
           <img 
-            src={`https://mycarapi-1.onrender.com/api/files/download/${images[0].filename}`}
+            src={getImageUrl(images[0].filename)}
             alt="Car"
             onError={(e) => {
               e.target.onerror = null;
