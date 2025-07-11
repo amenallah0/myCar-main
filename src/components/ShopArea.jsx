@@ -140,10 +140,10 @@ const ShopArea = () => {
   const CarImageCarousel = ({ images }) => {
     return (
       <div style={{ height: '300px', overflow: 'hidden' }}>
-        {car?.images && car.images[0]?.filename ? (
+        {images && images[0]?.filename ? (
           <img 
-            src={`https://mycarapi-1.onrender.com/api/files/download/${car.images[0].filename}`}
-            alt={`${car?.make} ${car?.model}` || 'Car'}
+            src={`https://mycarapi-1.onrender.com/api/files/download/${images[0].filename}`}
+            alt="Car"
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = '/assets/img/no-car-image.png';

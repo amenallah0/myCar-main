@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ApiCarService from "../services/apiCarServices";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { getImageUrl } from '../config/apiConfig';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -349,7 +350,7 @@ const Wishlist = () => {
                   <CardWrapper>
                     <ImageContainer>
                       <CarImage
-                        src={`http://localhost:8081/api/files/download/${car.images?.[0]?.filename}`}
+                        src={getImageUrl(car.images?.[0]?.filename)}
                         alt={`${car.make} ${car.model}`}
                         onError={() => handleImageError(car)}
                       />

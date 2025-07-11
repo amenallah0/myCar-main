@@ -8,7 +8,7 @@ const generatePaymentLink = async (amount, userId, annonceId) => {
     
     const token = TokenService.getLocalAccessToken();
 
-    const response = await fetch('http://localhost:8081/api/payments/generate-link', {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/api/payments/generate-link`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -17,8 +17,8 @@ const generatePaymentLink = async (amount, userId, annonceId) => {
       body: JSON.stringify({
         amount: amount,
         trackingId: `promo_${userId}_${annonceId}_${Date.now()}`,
-        successUrl: `http://localhost:3000/payment-success?carId=${annonceId}`,
-        failUrl: 'http://localhost:3000/payment-failed'
+        successUrl: `${process.env.REACT_APP_FRONTEND_URL || window.location.origin}/payment-success?carId=${annonceId}`,
+        failUrl: `${process.env.REACT_APP_FRONTEND_URL || window.location.origin}/payment-failed`
       })
     });
 

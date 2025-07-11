@@ -8,6 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Spinner from "react-bootstrap/Spinner";
 import { motion } from "framer-motion";
 import { FaShoppingCart, FaPhoneAlt, FaRegHeart, FaShare } from 'react-icons/fa';
+import { getImageUrl } from '../config/apiConfig';
 import ExpertContactForm from './ExpertContactForm';
 import PredictionService from "./../services/predictionService";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -741,7 +742,7 @@ const ShopDetails = () => {
                 {car.images.map((image, index) => (
                   <div key={index} className="carousel-slide">
                     <img
-                      src={`http://localhost:8081/api/files/download/${image.filename}`}
+                      src={getImageUrl(image.filename)}
                       alt={`${car.make} ${car.model}`}
                     />
                   </div>
@@ -758,7 +759,7 @@ const ShopDetails = () => {
                     onClick={() => handleThumbnailClick(index)}
                   >
                     <img
-                      src={`http://localhost:8081/api/files/download/${image.filename}`}
+                      src={getImageUrl(image.filename)}
                       alt={`Thumbnail ${index + 1}`}
                     />
                   </motion.div>

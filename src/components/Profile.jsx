@@ -30,6 +30,7 @@ import "swiper/css/pagination";
 import "swiper/css/autoplay";
 import axios from 'axios';
 import TokenService from '../services/TokenService';
+import { getApiUrl, getImageUrl } from '../config/apiConfig';
 
 const Profile = () => {
   const { username } = useParams();
@@ -379,8 +380,8 @@ const Profile = () => {
   const refreshReportsCount = async () => {
     try {
       const endpoint = user?.role === 'ROLE_EXPERT' 
-        ? `http://localhost:8081/api/expertise-requests/expert/${user.id}`
-        : `http://localhost:8081/api/expertise-requests/user/${user.id}`;
+        ? getApiUrl('/api/expertise-requests', `/expert/${user.id}`)
+        : getApiUrl('/api/expertise-requests', `/user/${user.id}`);
         
       const response = await axios.get(endpoint);
       
@@ -605,11 +606,11 @@ const Profile = () => {
                   <div className="vehicle-image">
                     {console.log('car.images:', car.images)}
                     {console.log('image url:', car?.images && car.images[0]?.filename
-                      ? `https://mycarapi-1.onrender.com/api/files/download/${car.images[0].filename}`
+                      ? getImageUrl(car.images[0].filename)
                       : 'NO IMAGE')}
                     {car?.images && car.images[0]?.filename ? (
                       <img 
-                        src={`https://mycarapi-1.onrender.com/api/files/download/${car.images[0].filename}`}
+                        src={getImageUrl(car.images[0].filename)}
                         alt={`${car?.make} ${car?.model}` || 'Car'}
                         onError={(e) => {
                           e.target.onerror = null;
