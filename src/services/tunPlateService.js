@@ -20,6 +20,8 @@ const TunPlateService = {
                 formData.append('files', file);
             });
 
+            console.log(`🚗 Envoi de ${files.length} images au service TunPlateRemover pour traitement...`);
+
             // Envoi au service TunPlateRemover qui va traiter les images et les transférer au backend
             const response = await fetch(getTunPlateUrl(API_CONFIG.ENDPOINTS.TUNPLATE_UPLOAD_CAR), {
                 method: 'POST',
@@ -33,10 +35,19 @@ const TunPlateService = {
             }
 
             const result = await response.json();
-            return result;
+            console.log('✅ Réponse du service TunPlateRemover:', result);
+            
+            // Le service TunPlateRemover a maintenant transféré les images traitées au backend principal
+            // La réponse contient les détails de l'opération
+            return {
+                success: true,
+                message: result.message,
+                processed: true,
+                mainApiResponse: result.main_api_response
+            };
 
         } catch (error) {
-            console.error('Erreur dans TunPlateService.addCarWithBlurredPlates:', error);
+            console.error('❌ Erreur dans TunPlateService.addCarWithBlurredPlates:', error);
             throw error;
         }
     },
@@ -47,13 +58,29 @@ const TunPlateService = {
      */
     checkServiceAvailability: async () => {
         try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondes de timeout
+
             const response = await fetch(`${API_CONFIG.TUNPLATE_URL}/health`, {
                 method: 'GET',
-                timeout: 5000 // 5 secondes de timeout
+                signal: controller.signal
             });
-            return response.ok;
+
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('🟢 Service TunPlateRemover disponible:', data);
+                return true;
+            }
+            return false;
+            
         } catch (error) {
-            console.warn('Service TunPlateRemover non disponible:', error);
+            if (error.name === 'AbortError') {
+                console.warn('⏰ Timeout lors de la vérification du service TunPlateRemover');
+            } else {
+                console.warn('🔴 Service TunPlateRemover non disponible:', error.message);
+            }
             return false;
         }
     }
