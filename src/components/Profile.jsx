@@ -605,7 +605,7 @@ const Profile = () => {
                   <div className="vehicle-image">
                     {car?.images && car.images[0]?.filename ? (
                       <img 
-                        src={`http://localhost:8081/api/files/download/${car.images[0].filename}`}
+                        src={`https://mycarapi-1.onrender.com/api/files/download/${car.images[0].filename}`}
                         alt={`${car?.make} ${car?.model}` || 'Car'}
                         onError={(e) => {
                           e.target.onerror = null;
