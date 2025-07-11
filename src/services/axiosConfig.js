@@ -2,7 +2,7 @@ import axios from 'axios';
 import TokenService from './TokenService';
 import { useUser } from '../contexts/userContext';
 
-const API_URL = process.env.REACT_APP_API_URL + '/api';
+const API_URL = process.env.REACT_APP_API_URL;
 
 const setupAxiosInterceptors = (logout) => {
     axios.interceptors.request.use(
