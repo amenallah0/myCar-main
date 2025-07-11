@@ -1,0 +1,20 @@
+{
+  "env": {
+    "REACT_APP_API_URL": "https://mycarapi-1.onrender.com",
+    "REACT_APP_TUNPLATE_URL": "https://tunplate-remover.onrender.com",
+    "REACT_APP_CAR_PRICE_API_URL": "https://car-price-estimation-mnys.onrender.com"
+  },
+  "build": {
+    "env": {
+      "REACT_APP_API_URL": "https://mycarapi-1.onrender.com",
+      "REACT_APP_TUNPLATE_URL": "https://tunplate-remover.onrender.com", 
+      "REACT_APP_CAR_PRICE_API_URL": "https://car-price-estimation-mnys.onrender.com"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

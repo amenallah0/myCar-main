@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5001'; // URL de votre API Flask
+const API_URL = process.env.REACT_APP_CAR_PRICE_API_URL || 'https://flask-6-6v7r.onrender.com';
 
 const PredictionService = {
   getPredictedPrice: async (carData) => {
@@ -20,7 +20,10 @@ const PredictionService = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
+        mode: 'cors',
+        credentials: 'omit',
         body: JSON.stringify({
           year: carData.year,
           make: carData.make,
@@ -39,6 +42,13 @@ const PredictionService = {
       return data.predicted_price;
     } catch (error) {
       console.error('Error predicting price:', error);
+      console.error('API URL used:', API_URL);
+      console.error('Car data sent:', carData);
+      
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        throw new Error('Impossible de contacter le serveur de prédiction. Vérifiez votre connexion internet.');
+      }
+      
       throw error;
     }
   }
