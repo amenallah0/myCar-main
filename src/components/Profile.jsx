@@ -603,9 +603,13 @@ const Profile = () => {
               userProfile.cars.map((car) => (
                 <div key={car?.id || 'no-id'} className={`vehicle-card ${car.available ? 'available' : 'unavailable'} ${car.promoted ? 'promoted' : ''}`}>
                   <div className="vehicle-image">
+                    {console.log('car.images:', car.images)}
+                    {console.log('image url:', car?.images && car.images[0]?.filename
+                      ? `https://mycarapi-1.onrender.com/api/files/download/${car.images[0].filename}`
+                      : 'NO IMAGE')}
                     {car?.images && car.images[0]?.filename ? (
                       <img 
-                        src={`http://localhost:8081/api/files/download/${car.images[0].filename}`}
+                        src={`https://mycarapi-1.onrender.com/api/files/download/${car.images[0].filename}`}
                         alt={`${car?.make} ${car?.model}` || 'Car'}
                         onError={(e) => {
                           e.target.onerror = null;
